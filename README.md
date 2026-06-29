@@ -51,14 +51,21 @@ docker compose -f docker-compose.dev.yml up --build
 
 - `ghcr.io/<owner>/mikan-qb-rss:latest`
 
-复制 `.env.example` 为 `.env`，填写 `GHCR_OWNER`，然后运行：
-
 ```bash
 docker compose -f docker-compose.ghcr.yml pull
 docker compose -f docker-compose.ghcr.yml up -d
 ```
 
 `data` 目录及其中的 `app.db`、`app.log` 会在首次启动时自动创建。
+
+也可以使用更新脚本：
+
+```bash
+chmod +x docker_restart.sh
+./docker_restart.sh
+```
+
+脚本会直接拉取 `ghcr.io/hanngyaku/mikan-qb-rss:latest`。私有 GHCR Package 需要提前执行 `docker login ghcr.io`。
 
 ## 当前功能
 
