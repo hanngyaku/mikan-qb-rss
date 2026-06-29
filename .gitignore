@@ -3,4 +3,5 @@
 /web/dist/
 *.tsbuildinfo
 *.exe
+/app.log
 .env

@@ -3,6 +3,7 @@ services:
     build: .
     environment:
       DB_PATH: /app/data/app.db
+      LOG_PATH: /app/data/app.log
       LISTEN_ADDR: :8081
     expose:
       - "8081"

@@ -198,10 +198,21 @@ func (s *SubscriptionService) removeQB(ctx context.Context, item model.Subscript
 	if err != nil {
 		return err
 	}
-	ruleErr := client.RemoveRule(ctx, item.RuleName)
-	feedErr := client.RemoveFeed(ctx, item.Name)
-	if ruleErr != nil && feedErr != nil {
-		return fmt.Errorf("remove qBittorrent rule: %v; feed: %w", ruleErr, feedErr)
+	if _, exists, err := client.RSSRule(ctx, item.RuleName); err != nil {
+		return err
+	} else if exists {
+		if err := client.RemoveRule(ctx, item.RuleName); err != nil {
+			return fmt.Errorf("remove qBittorrent rule: %w", err)
+		}
+	}
+	feedPath, exists, err := client.FeedPathByURL(ctx, item.RSSURL)
+	if err != nil {
+		return err
+	}
+	if exists {
+		if err := client.RemoveFeed(ctx, feedPath); err != nil {
+			return fmt.Errorf("remove qBittorrent feed: %w", err)
+		}
 	}
 	return nil
 }

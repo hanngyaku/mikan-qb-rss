@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -16,12 +18,13 @@ import (
 )
 
 type Handler struct {
-	db   *sql.DB
-	subs *service.SubscriptionService
+	db      *sql.DB
+	subs    *service.SubscriptionService
+	logPath string
 }
 
-func New(db *sql.DB) *Handler {
-	return &Handler{db: db, subs: service.NewSubscriptionService(db)}
+func New(db *sql.DB, logPath string) *Handler {
+	return &Handler{db: db, subs: service.NewSubscriptionService(db), logPath: logPath}
 }
 
 func (h *Handler) Register(mux *http.ServeMux) {
@@ -36,6 +39,7 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/subscriptions/{id}", h.updateSubscription)
 	mux.HandleFunc("DELETE /api/subscriptions/{id}", h.deleteSubscription)
 	mux.HandleFunc("POST /api/subscriptions/{id}/sync", h.syncSubscription)
+	mux.HandleFunc("GET /api/logs", h.getLogs)
 }
 
 // getSettings godoc
@@ -206,6 +210,50 @@ func (h *Handler) syncSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, item)
+}
+
+// getLogs godoc
+// @Summary 获取最新日志
+// @Tags logs
+// @Produce json
+// @Param lines query int false "返回行数，默认 100，最大 1000"
+// @Success 200 {object} model.LogResponse
+// @Router /logs [get]
+func (h *Handler) getLogs(w http.ResponseWriter, r *http.Request) {
+	count := 100
+	if value := r.URL.Query().Get("lines"); value != "" {
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed < 1 || parsed > 1000 {
+			fail(w, http.StatusBadRequest, errors.New("lines must be between 1 and 1000"))
+			return
+		}
+		count = parsed
+	}
+	file, err := os.Open(h.logPath)
+	if err != nil {
+		fail(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer file.Close()
+	lines := make([]string, 0, count)
+	next := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if len(lines) < count {
+			lines = append(lines, scanner.Text())
+		} else {
+			lines[next] = scanner.Text()
+			next = (next + 1) % count
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		fail(w, http.StatusInternalServerError, err)
+		return
+	}
+	if len(lines) == count && next > 0 {
+		lines = append(append([]string{}, lines[next:]...), lines[:next]...)
+	}
+	writeJSON(w, http.StatusOK, model.LogResponse{Lines: lines})
 }
 
 func subscriptionID(r *http.Request) (int64, error) {

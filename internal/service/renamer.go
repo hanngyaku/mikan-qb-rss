@@ -100,6 +100,7 @@ func renameTorrent(ctx context.Context, client *qbittorrent.Client, torrent qbit
 		if err := client.RenameFile(ctx, torrent.Hash, file.Name, newPath); err != nil {
 			return err
 		}
+		log.Printf("renamed torrent file %q to %q", file.Name, newPath)
 	}
 	return nil
 }

@@ -19,3 +19,5 @@ dl { display: grid; grid-template-columns: 8rem 1fr; gap: .5rem; overflow-wrap: 
 dt { color: #6b7280; }
 dd { margin: 0; }
 .message { padding: .75rem; border-radius: .35rem; background: #e0f2fe; }
+.log-controls { display: flex; align-items: end; grid-template-columns: 8rem auto; }
+.logs { min-height: 20rem; padding: 1rem; overflow: auto; color: #d1d5db; background: #111827; border-radius: .5rem; white-space: pre-wrap; }

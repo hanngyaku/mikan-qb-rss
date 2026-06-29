@@ -134,6 +134,44 @@ func (c *Client) FeedURL(ctx context.Context, name string) (string, bool, error)
 	return item.URL, exists, nil
 }
 
+func (c *Client) FeedPathByURL(ctx context.Context, feedURL string) (string, bool, error) {
+	body, err := c.RSSItems(ctx)
+	if err != nil {
+		return "", false, err
+	}
+	var items map[string]json.RawMessage
+	if err := json.Unmarshal(body, &items); err != nil {
+		return "", false, err
+	}
+	path, exists := findFeedPath(items, "", feedURL)
+	return path, exists, nil
+}
+
+func findFeedPath(items map[string]json.RawMessage, prefix, feedURL string) (string, bool) {
+	for name, raw := range items {
+		itemPath := name
+		if prefix != "" {
+			itemPath = prefix + `\` + name
+		}
+		var feed struct {
+			URL string `json:"url"`
+		}
+		if json.Unmarshal(raw, &feed) == nil && feed.URL != "" {
+			if feed.URL == feedURL {
+				return itemPath, true
+			}
+			continue
+		}
+		var folder map[string]json.RawMessage
+		if json.Unmarshal(raw, &folder) == nil {
+			if path, found := findFeedPath(folder, itemPath, feedURL); found {
+				return path, true
+			}
+		}
+	}
+	return "", false
+}
+
 func (c *Client) RSSRules(ctx context.Context) (json.RawMessage, error) {
 	body, err := c.request(ctx, http.MethodGet, "/api/v2/rss/rules", nil, "")
 	return json.RawMessage(body), err

@@ -6,6 +6,7 @@ export type Subscription = components['schemas']['model.Subscription']
 export type CreateSubscription = components['schemas']['model.CreateSubscriptionRequest']
 export type UpdateSubscription = components['schemas']['model.UpdateSubscriptionRequest']
 export type QBTest = components['schemas']['model.QBTestResponse']
+export type LogResponse = components['schemas']['model.LogResponse']
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
@@ -26,4 +27,5 @@ export const api = {
   updateSubscription: (id: number, body: UpdateSubscription) => request<Subscription>(`/subscriptions/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteSubscription: (id: number) => request<void>(`/subscriptions/${id}`, { method: 'DELETE' }),
   syncSubscription: (id: number) => request<Subscription>(`/subscriptions/${id}/sync`, { method: 'POST' }),
+  getLogs: (lines: number) => request<LogResponse>(`/logs?lines=${lines}`),
 }

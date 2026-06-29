@@ -4,6 +4,45 @@
  */
 
 export interface paths {
+    "/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取最新日志 */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description 返回行数，默认 100，最大 1000 */
+                    lines?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.LogResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/qb/test": {
         parameters: {
             query?: never;
@@ -275,6 +314,9 @@ export interface components {
             regex?: string;
             rssUrl?: string;
             season?: number;
+        };
+        "model.LogResponse": {
+            lines?: string[];
         };
         "model.QBTestResponse": {
             connected?: boolean;

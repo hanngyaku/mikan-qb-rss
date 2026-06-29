@@ -64,3 +64,7 @@ type QBTestResponse struct {
 	Version       string `json:"version,omitempty"`
 	WebAPIVersion string `json:"webApiVersion,omitempty"`
 }
+
+type LogResponse struct {
+	Lines []string `json:"lines"`
+}

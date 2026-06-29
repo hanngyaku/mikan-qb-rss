@@ -52,3 +52,13 @@ func TestRSSSetup(t *testing.T) {
 		t.Fatalf("unexpected rule %#v", rule)
 	}
 }
+
+func TestFindFeedPath(t *testing.T) {
+	items := map[string]json.RawMessage{
+		"folder": json.RawMessage(`{"show":{"url":"https://example.com/rss","uid":"1"}}`),
+	}
+	path, found := findFeedPath(items, "", "https://example.com/rss")
+	if !found || path != `folder\show` {
+		t.Fatalf("got path=%q found=%v", path, found)
+	}
+}

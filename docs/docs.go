@@ -15,6 +15,33 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/logs": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "logs"
+                ],
+                "summary": "获取最新日志",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "返回行数，默认 100，最大 1000",
+                        "name": "lines",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.LogResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/qb/test": {
             "post": {
                 "produces": [
@@ -238,6 +265,17 @@ const docTemplate = `{
                 },
                 "season": {
                     "type": "integer"
+                }
+            }
+        },
+        "model.LogResponse": {
+            "type": "object",
+            "properties": {
+                "lines": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

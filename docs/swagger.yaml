@@ -11,6 +11,13 @@ definitions:
       season:
         type: integer
     type: object
+  model.LogResponse:
+    properties:
+      lines:
+        items:
+          type: string
+        type: array
+    type: object
   model.QBTestResponse:
     properties:
       connected:
@@ -96,6 +103,23 @@ info:
   title: Mikan qBittorrent RSS API
   version: "0.1"
 paths:
+  /logs:
+    get:
+      parameters:
+      - description: 返回行数，默认 100，最大 1000
+        in: query
+        name: lines
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LogResponse'
+      summary: 获取最新日志
+      tags:
+      - logs
   /qb/test:
     post:
       produces:
