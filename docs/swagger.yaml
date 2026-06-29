@@ -1,0 +1,160 @@
+basePath: /api
+definitions:
+  model.CreateSubscriptionRequest:
+    properties:
+      customDirName:
+        type: string
+      regex:
+        type: string
+      rssUrl:
+        type: string
+    type: object
+  model.QBTestResponse:
+    properties:
+      connected:
+        type: boolean
+      version:
+        type: string
+      webApiVersion:
+        type: string
+    type: object
+  model.SettingsResponse:
+    properties:
+      defaultCategory:
+        type: string
+      downloadRoot:
+        type: string
+      passwordSet:
+        type: boolean
+      qbUrl:
+        type: string
+      qbUsername:
+        type: string
+      rssInterval:
+        type: integer
+    type: object
+  model.Subscription:
+    properties:
+      createdAt:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: string
+      rawTitle:
+        type: string
+      regex:
+        type: string
+      rssUrl:
+        type: string
+      ruleName:
+        type: string
+      saveDirName:
+        type: string
+      savePath:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.UpdateSettingsRequest:
+    properties:
+      defaultCategory:
+        type: string
+      downloadRoot:
+        type: string
+      qbPassword:
+        type: string
+      qbUrl:
+        type: string
+      qbUsername:
+        type: string
+      rssInterval:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: qBittorrent RSS 管理工具 API
+  title: Mikan qBittorrent RSS API
+  version: "0.1"
+paths:
+  /qb/test:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.QBTestResponse'
+      summary: 测试 qBittorrent 连接
+      tags:
+      - qbittorrent
+  /settings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SettingsResponse'
+      summary: 获取设置（不返回密码）
+      tags:
+      - settings
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 设置
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SettingsResponse'
+      summary: 更新设置，空密码保留原密码
+      tags:
+      - settings
+  /subscriptions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Subscription'
+            type: array
+      summary: 订阅列表
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订阅
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Subscription'
+      summary: 添加订阅（第一阶段仅写入本地数据库）
+      tags:
+      - subscriptions
+swagger: "2.0"

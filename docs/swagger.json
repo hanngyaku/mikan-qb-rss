@@ -1,0 +1,248 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "qBittorrent RSS 管理工具 API",
+        "title": "Mikan qBittorrent RSS API",
+        "contact": {},
+        "version": "0.1"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/qb/test": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "qbittorrent"
+                ],
+                "summary": "测试 qBittorrent 连接",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.QBTestResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "获取设置（不返回密码）",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SettingsResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "更新设置，空密码保留原密码",
+                "parameters": [
+                    {
+                        "description": "设置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SettingsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "订阅列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Subscription"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "添加订阅（第一阶段仅写入本地数据库）",
+                "parameters": [
+                    {
+                        "description": "订阅",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateSubscriptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.Subscription"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.CreateSubscriptionRequest": {
+            "type": "object",
+            "properties": {
+                "customDirName": {
+                    "type": "string"
+                },
+                "regex": {
+                    "type": "string"
+                },
+                "rssUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.QBTestResponse": {
+            "type": "object",
+            "properties": {
+                "connected": {
+                    "type": "boolean"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "webApiVersion": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.SettingsResponse": {
+            "type": "object",
+            "properties": {
+                "defaultCategory": {
+                    "type": "string"
+                },
+                "downloadRoot": {
+                    "type": "string"
+                },
+                "passwordSet": {
+                    "type": "boolean"
+                },
+                "qbUrl": {
+                    "type": "string"
+                },
+                "qbUsername": {
+                    "type": "string"
+                },
+                "rssInterval": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Subscription": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rawTitle": {
+                    "type": "string"
+                },
+                "regex": {
+                    "type": "string"
+                },
+                "rssUrl": {
+                    "type": "string"
+                },
+                "ruleName": {
+                    "type": "string"
+                },
+                "saveDirName": {
+                    "type": "string"
+                },
+                "savePath": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UpdateSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "defaultCategory": {
+                    "type": "string"
+                },
+                "downloadRoot": {
+                    "type": "string"
+                },
+                "qbPassword": {
+                    "type": "string"
+                },
+                "qbUrl": {
+                    "type": "string"
+                },
+                "qbUsername": {
+                    "type": "string"
+                },
+                "rssInterval": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

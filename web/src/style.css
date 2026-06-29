@@ -1,0 +1,19 @@
+:root { font-family: system-ui, sans-serif; color: #1f2937; background: #f3f4f6; }
+body { margin: 0; }
+header { display: flex; justify-content: space-between; padding: 1rem max(1rem, calc((100% - 900px) / 2)); color: white; background: #111827; }
+nav { display: flex; gap: 1rem; }
+nav a { color: #d1d5db; text-decoration: none; }
+nav a.router-link-active { color: white; }
+main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+.title, .actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.panel, .card { margin-bottom: 1rem; padding: 1rem; border: 1px solid #d1d5db; border-radius: .5rem; background: white; }
+form { display: grid; gap: .9rem; }
+label { display: grid; gap: .3rem; }
+input { padding: .65rem; border: 1px solid #9ca3af; border-radius: .35rem; }
+button { padding: .65rem 1rem; border: 0; border-radius: .35rem; color: white; background: #2563eb; cursor: pointer; }
+button.secondary { background: #4b5563; }
+summary { cursor: pointer; font-weight: 600; }
+dl { display: grid; grid-template-columns: 8rem 1fr; gap: .5rem; overflow-wrap: anywhere; }
+dt { color: #6b7280; }
+dd { margin: 0; }
+.message { padding: .75rem; border-radius: .35rem; background: #e0f2fe; }
