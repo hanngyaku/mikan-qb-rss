@@ -5,11 +5,11 @@ cd "$(dirname "$0")"
 
 mkdir -p data
 
-echo "==> 拉取最新镜像"
+echo "==> Pulling latest image"
 docker compose -f docker-compose.ghcr.yml pull
 
-echo "==> 更新并启动服务"
+echo "==> Updating and starting service"
 docker compose -f docker-compose.ghcr.yml up -d --remove-orphans
 
-echo "==> 当前服务状态"
+echo "==> Service status"
 docker compose -f docker-compose.ghcr.yml ps
