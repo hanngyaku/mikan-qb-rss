@@ -45,6 +45,21 @@ docker compose -f docker-compose.dev.yml up --build
 
 调试前端为 `http://localhost:5173`，调试后端为 `http://localhost:8081`。SQLite 数据保存在 `app-data` volume。
 
+## 从 GHCR 部署
+
+推送到 GitHub `main` 分支后，Actions 会将前端编译进 Go 运行镜像，并发布：
+
+- `ghcr.io/<owner>/mikan-qb-rss:latest`
+
+复制 `.env.example` 为 `.env`，填写 `GHCR_OWNER`，然后运行：
+
+```bash
+docker compose -f docker-compose.ghcr.yml pull
+docker compose -f docker-compose.ghcr.yml up -d
+```
+
+`data` 目录及其中的 `app.db`、`app.log` 会在首次启动时自动创建。
+
 ## 当前功能
 
 添加订阅会拉取并解析 RSS、清理目录名、确保 qBittorrent 分类存在、创建 RSS feed 和下载规则，再写入 SQLite。订阅支持编辑、删除和重新同步。

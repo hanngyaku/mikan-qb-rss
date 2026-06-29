@@ -1,6 +1,6 @@
 services:
   app:
-    build: .
+    image: ghcr.io/${GHCR_OWNER}/mikan-qb-rss:latest
     environment:
       DB_PATH: /app/data/app.db
       LOG_PATH: /app/data/app.log
@@ -8,7 +8,5 @@ services:
     ports:
       - "${WEB_PORT:-8080}:8081"
     volumes:
-      - app-data:/app/data
+      - ./data:/app/data
     restart: unless-stopped
-volumes:
-  app-data:

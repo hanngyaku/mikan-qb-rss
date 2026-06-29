@@ -10,6 +10,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
+	"path/filepath"
+	"strings"
 
 	_ "github.com/example/mikan-qb-rss/docs"
 	"github.com/example/mikan-qb-rss/internal/db"
@@ -38,6 +41,9 @@ func main() {
 	mux := http.NewServeMux()
 	h.Register(mux)
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
+	if webDir := os.Getenv("WEB_DIR"); webDir != "" {
+		mux.Handle("/", spaHandler(webDir))
+	}
 
 	addr := env("LISTEN_ADDR", ":8081")
 	log.Printf("server listening on %s", addr)
@@ -45,6 +51,18 @@ func main() {
 		log.Printf("%s %s", r.Method, r.URL.RequestURI())
 		mux.ServeHTTP(w, r)
 	})))
+}
+
+func spaHandler(dir string) http.Handler {
+	files := http.FileServer(http.Dir(dir))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		name := filepath.Join(dir, filepath.FromSlash(strings.TrimPrefix(path.Clean("/"+r.URL.Path), "/")))
+		if info, err := os.Stat(name); err == nil && !info.IsDir() {
+			files.ServeHTTP(w, r)
+			return
+		}
+		http.ServeFile(w, r, filepath.Join(dir, "index.html"))
+	})
 }
 
 func env(key, fallback string) string {
