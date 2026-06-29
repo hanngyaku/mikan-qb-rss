@@ -4,108 +4,326 @@
  */
 
 export interface paths {
-  "/qb/test": {
-    post: {
-      responses: {
-        /** OK */
-        200: {
-          schema: definitions["model.QBTestResponse"];
+    "/qb/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
+        get?: never;
+        put?: never;
+        /** 测试 qBittorrent 连接 */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.QBTestResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-  };
-  "/settings": {
-    get: {
-      responses: {
-        /** OK */
-        200: {
-          schema: definitions["model.SettingsResponse"];
+    "/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
+        /** 获取设置（不返回密码） */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.SettingsResponse"];
+                    };
+                };
+            };
+        };
+        /** 更新设置，空密码保留原密码 */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 设置 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.UpdateSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.SettingsResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    put: {
-      parameters: {
-        body: {
-          /** 设置 */
-          body: definitions["model.UpdateSettingsRequest"];
+    "/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** OK */
-        200: {
-          schema: definitions["model.SettingsResponse"];
+        /** 订阅列表 */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.Subscription"][];
+                    };
+                };
+            };
         };
-      };
+        put?: never;
+        /** 添加订阅并同步 qBittorrent */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 订阅 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.CreateSubscriptionRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.Subscription"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-  };
-  "/subscriptions": {
-    get: {
-      responses: {
-        /** OK */
-        200: {
-          schema: definitions["model.Subscription"][];
+    "/subscriptions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
+        get?: never;
+        /** 更新订阅并同步 qBittorrent */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description 订阅 ID */
+                    id: number;
+                };
+                cookie?: never;
+            };
+            /** @description 订阅 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.UpdateSubscriptionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.Subscription"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** 删除订阅及 qBittorrent RSS 配置 */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description 订阅 ID */
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    post: {
-      parameters: {
-        body: {
-          /** 订阅 */
-          body: definitions["model.CreateSubscriptionRequest"];
+    "/subscriptions/{id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** Created */
-        201: {
-          schema: definitions["model.Subscription"];
+        get?: never;
+        put?: never;
+        /** 重新同步订阅到 qBittorrent */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description 订阅 ID */
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["model.Subscription"];
+                    };
+                };
+            };
         };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-  };
 }
-
-export interface definitions {
-  "model.CreateSubscriptionRequest": {
-    customDirName?: string;
-    regex?: string;
-    rssUrl?: string;
-  };
-  "model.QBTestResponse": {
-    connected?: boolean;
-    version?: string;
-    webApiVersion?: string;
-  };
-  "model.SettingsResponse": {
-    defaultCategory?: string;
-    downloadRoot?: string;
-    passwordSet?: boolean;
-    qbUrl?: string;
-    qbUsername?: string;
-    rssInterval?: number;
-  };
-  "model.Subscription": {
-    createdAt?: string;
-    enabled?: boolean;
-    id?: number;
-    name?: string;
-    rawTitle?: string;
-    regex?: string;
-    rssUrl?: string;
-    ruleName?: string;
-    saveDirName?: string;
-    savePath?: string;
-    updatedAt?: string;
-  };
-  "model.UpdateSettingsRequest": {
-    defaultCategory?: string;
-    downloadRoot?: string;
-    qbPassword?: string;
-    qbUrl?: string;
-    qbUsername?: string;
-    rssInterval?: number;
-  };
+export type webhooks = Record<string, never>;
+export interface components {
+    schemas: {
+        "model.CreateSubscriptionRequest": {
+            customDirName?: string;
+            regex?: string;
+            rssUrl?: string;
+            season?: number;
+        };
+        "model.QBTestResponse": {
+            connected?: boolean;
+            version?: string;
+            webApiVersion?: string;
+        };
+        "model.SettingsResponse": {
+            defaultCategory?: string;
+            downloadRoot?: string;
+            passwordSet?: boolean;
+            qbUrl?: string;
+            qbUsername?: string;
+            rssInterval?: number;
+        };
+        "model.Subscription": {
+            createdAt?: string;
+            enabled?: boolean;
+            id?: number;
+            name?: string;
+            rawTitle?: string;
+            regex?: string;
+            rssUrl?: string;
+            ruleName?: string;
+            saveDirName?: string;
+            savePath?: string;
+            season?: number;
+            updatedAt?: string;
+        };
+        "model.UpdateSettingsRequest": {
+            defaultCategory?: string;
+            downloadRoot?: string;
+            qbPassword?: string;
+            qbUrl?: string;
+            qbUsername?: string;
+            rssInterval?: number;
+        };
+        "model.UpdateSubscriptionRequest": {
+            enabled?: boolean;
+            regex?: string;
+            rssUrl?: string;
+            saveDirName?: string;
+            season?: number;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-
-export interface operations {}
-
-export interface external {}
+export type $defs = Record<string, never>;
+export type operations = Record<string, never>;

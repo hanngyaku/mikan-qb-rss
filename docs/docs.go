@@ -115,7 +115,7 @@ const docTemplate = `{
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "添加订阅（第一阶段仅写入本地数据库）",
+                "summary": "添加订阅并同步 qBittorrent",
                 "parameters": [
                     {
                         "description": "订阅",
@@ -136,6 +136,91 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/subscriptions/{id}": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "更新订阅并同步 qBittorrent",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "订阅 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "订阅",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateSubscriptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Subscription"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "删除订阅及 qBittorrent RSS 配置",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "订阅 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/subscriptions/{id}/sync": {
+            "post": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "重新同步订阅到 qBittorrent",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "订阅 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Subscription"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -150,6 +235,9 @@ const docTemplate = `{
                 },
                 "rssUrl": {
                     "type": "string"
+                },
+                "season": {
+                    "type": "integer"
                 }
             }
         },
@@ -223,6 +311,9 @@ const docTemplate = `{
                 "savePath": {
                     "type": "string"
                 },
+                "season": {
+                    "type": "integer"
+                },
                 "updatedAt": {
                     "type": "string"
                 }
@@ -247,6 +338,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "rssInterval": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.UpdateSubscriptionRequest": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "regex": {
+                    "type": "string"
+                },
+                "rssUrl": {
+                    "type": "string"
+                },
+                "saveDirName": {
+                    "type": "string"
+                },
+                "season": {
                     "type": "integer"
                 }
             }

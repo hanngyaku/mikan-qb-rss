@@ -6,7 +6,7 @@ import SubscriptionCard from '../components/SubscriptionCard.vue'
 const items = ref<Subscription[]>([])
 const showAdd = ref(false)
 const message = ref('')
-const form = reactive<CreateSubscription>({ rssUrl: '', regex: '', customDirName: '' })
+const form = reactive<CreateSubscription>({ rssUrl: '', regex: '', customDirName: '', season: 1 })
 
 async function load() {
   try { items.value = await api.listSubscriptions() }
@@ -16,7 +16,7 @@ async function load() {
 async function add() {
   try {
     await api.createSubscription(form)
-    Object.assign(form, { rssUrl: '', regex: '', customDirName: '' })
+    Object.assign(form, { rssUrl: '', regex: '', customDirName: '', season: 1 })
     showAdd.value = false
     await load()
   } catch (error) { message.value = String(error) }
@@ -32,10 +32,18 @@ onMounted(load)
       <label>RSS URL<input v-model.trim="form.rssUrl" type="url" required></label>
       <label>正则表达式（可选）<input v-model="form.regex"></label>
       <label>自定义目录名（可选）<input v-model="form.customDirName"></label>
+      <label>Season<input v-model.number="form.season" type="number" min="1" required></label>
       <button type="submit">保存</button>
     </form>
     <p v-if="message" class="message">{{ message }}</p>
     <p v-if="!items.length">暂无订阅</p>
-    <SubscriptionCard v-for="item in items" :key="item.id" :item="item" />
+    <SubscriptionCard
+      v-for="item in items"
+      :key="item.id"
+      :item="item"
+      @changed="load"
+      @deleted="load"
+      @message="message = $event"
+    />
   </section>
 </template>

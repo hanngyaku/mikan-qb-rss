@@ -12,6 +12,8 @@ label { display: grid; gap: .3rem; }
 input { padding: .65rem; border: 1px solid #9ca3af; border-radius: .35rem; }
 button { padding: .65rem 1rem; border: 0; border-radius: .35rem; color: white; background: #2563eb; cursor: pointer; }
 button.secondary { background: #4b5563; }
+button.danger { background: #b91c1c; }
+.checkbox { display: flex; align-items: center; }
 summary { cursor: pointer; font-weight: 600; }
 dl { display: grid; grid-template-columns: 8rem 1fr; gap: .5rem; overflow-wrap: anywhere; }
 dt { color: #6b7280; }

@@ -21,6 +21,17 @@ func Open(path string) (*sql.DB, error) {
 		database.Close()
 		return nil, fmt.Errorf("initialize database: %w", err)
 	}
+	var seasonColumn int
+	if err = database.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('subscriptions') WHERE name='season'`).Scan(&seasonColumn); err != nil {
+		database.Close()
+		return nil, fmt.Errorf("inspect database schema: %w", err)
+	}
+	if seasonColumn == 0 {
+		if _, err = database.Exec(`ALTER TABLE subscriptions ADD COLUMN season INTEGER NOT NULL DEFAULT 1`); err != nil {
+			database.Close()
+			return nil, fmt.Errorf("migrate database: %w", err)
+		}
+	}
 	return database, nil
 }
 
@@ -44,6 +55,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 	save_dir_name TEXT NOT NULL,
 	save_path TEXT NOT NULL,
 	rule_name TEXT NOT NULL,
+	season INTEGER NOT NULL DEFAULT 1,
 	enabled INTEGER NOT NULL DEFAULT 1,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -8,6 +8,8 @@ definitions:
         type: string
       rssUrl:
         type: string
+      season:
+        type: integer
     type: object
   model.QBTestResponse:
     properties:
@@ -55,6 +57,8 @@ definitions:
         type: string
       savePath:
         type: string
+      season:
+        type: integer
       updatedAt:
         type: string
     type: object
@@ -71,6 +75,19 @@ definitions:
       qbUsername:
         type: string
       rssInterval:
+        type: integer
+    type: object
+  model.UpdateSubscriptionRequest:
+    properties:
+      enabled:
+        type: boolean
+      regex:
+        type: string
+      rssUrl:
+        type: string
+      saveDirName:
+        type: string
+      season:
         type: integer
     type: object
 info:
@@ -154,7 +171,62 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/model.Subscription'
-      summary: 添加订阅（第一阶段仅写入本地数据库）
+      summary: 添加订阅并同步 qBittorrent
+      tags:
+      - subscriptions
+  /subscriptions/{id}:
+    delete:
+      parameters:
+      - description: 订阅 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: 删除订阅及 qBittorrent RSS 配置
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订阅 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 订阅
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Subscription'
+      summary: 更新订阅并同步 qBittorrent
+      tags:
+      - subscriptions
+  /subscriptions/{id}/sync:
+    post:
+      parameters:
+      - description: 订阅 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Subscription'
+      summary: 重新同步订阅到 qBittorrent
       tags:
       - subscriptions
 swagger: "2.0"

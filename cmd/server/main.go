@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	_ "github.com/example/mikan-qb-rss/docs"
 	"github.com/example/mikan-qb-rss/internal/db"
 	"github.com/example/mikan-qb-rss/internal/handler"
+	"github.com/example/mikan-qb-rss/internal/service"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -23,6 +25,7 @@ func main() {
 	defer database.Close()
 
 	h := handler.New(database)
+	service.NewRenamer(database).Start(context.Background())
 	mux := http.NewServeMux()
 	h.Register(mux)
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)

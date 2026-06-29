@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "generate:api": "openapi-typescript ../docs/swagger.json -o src/types/openapi.d.ts"
+    "generate:api": "swagger2openapi ../docs/swagger.json -o ../docs/openapi.json && openapi-typescript ../docs/openapi.json -o src/types/openapi.d.ts"
   },
   "dependencies": {
     "vue": "^3.5.17",
@@ -15,6 +15,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",
     "openapi-typescript": "^7.13.0",
+    "swagger2openapi": "^7.0.8",
     "typescript": "~5.8.3",
     "vite": "^7.0.0",
     "vue-tsc": "^2.2.10"

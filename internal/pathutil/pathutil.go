@@ -1,6 +1,7 @@
 package pathutil
 
 import (
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -18,5 +19,8 @@ func CleanDirName(name string) string {
 }
 
 func Join(root, name string) string {
+	if strings.Contains(root, "/") {
+		return path.Join(root, CleanDirName(name))
+	}
 	return filepath.Join(root, CleanDirName(name))
 }

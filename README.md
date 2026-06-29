@@ -45,6 +45,8 @@ docker compose -f docker-compose.dev.yml up --build
 
 调试前端为 `http://localhost:5173`，调试后端为 `http://localhost:8081`。SQLite 数据保存在 `app-data` volume。
 
-## 第一阶段边界
+## 当前功能
 
-添加订阅会拉取并解析 RSS、清理目录名并写入 SQLite；qBittorrent RSS feed/rule 写入、订阅编辑/删除/同步留到下一阶段。
+添加订阅会拉取并解析 RSS、清理目录名、确保 qBittorrent 分类存在、创建 RSS feed 和下载规则，再写入 SQLite。订阅支持编辑、删除和重新同步。
+
+每个订阅可设置 Season（默认 1），保存路径为 `名称/Season N`。后端每分钟检查已完成任务，从 `[12]` 形式的文件名提取集数，并通过 qBittorrent API 重命名为 `名称 S01 E12.mp4`；无法识别集数的文件不会修改。

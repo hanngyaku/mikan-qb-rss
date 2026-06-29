@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/example/mikan-qb-rss/internal/config"
@@ -32,6 +33,9 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/qb/test", h.testQB)
 	mux.HandleFunc("GET /api/subscriptions", h.listSubscriptions)
 	mux.HandleFunc("POST /api/subscriptions", h.createSubscription)
+	mux.HandleFunc("PUT /api/subscriptions/{id}", h.updateSubscription)
+	mux.HandleFunc("DELETE /api/subscriptions/{id}", h.deleteSubscription)
+	mux.HandleFunc("POST /api/subscriptions/{id}/sync", h.syncSubscription)
 }
 
 // getSettings godoc
@@ -116,7 +120,7 @@ func (h *Handler) listSubscriptions(w http.ResponseWriter, r *http.Request) {
 }
 
 // createSubscription godoc
-// @Summary 添加订阅（第一阶段仅写入本地数据库）
+// @Summary 添加订阅并同步 qBittorrent
 // @Tags subscriptions
 // @Accept json
 // @Produce json
@@ -135,6 +139,89 @@ func (h *Handler) createSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, item)
+}
+
+// updateSubscription godoc
+// @Summary 更新订阅并同步 qBittorrent
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param id path int true "订阅 ID"
+// @Param body body model.UpdateSubscriptionRequest true "订阅"
+// @Success 200 {object} model.Subscription
+// @Router /subscriptions/{id} [put]
+func (h *Handler) updateSubscription(w http.ResponseWriter, r *http.Request) {
+	id, err := subscriptionID(r)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	var req model.UpdateSubscriptionRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	item, err := h.subs.Update(r.Context(), id, req)
+	if err != nil {
+		handleSubscriptionError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+// deleteSubscription godoc
+// @Summary 删除订阅及 qBittorrent RSS 配置
+// @Tags subscriptions
+// @Param id path int true "订阅 ID"
+// @Success 204
+// @Router /subscriptions/{id} [delete]
+func (h *Handler) deleteSubscription(w http.ResponseWriter, r *http.Request) {
+	id, err := subscriptionID(r)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := h.subs.Delete(r.Context(), id); err != nil {
+		handleSubscriptionError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// syncSubscription godoc
+// @Summary 重新同步订阅到 qBittorrent
+// @Tags subscriptions
+// @Param id path int true "订阅 ID"
+// @Success 200 {object} model.Subscription
+// @Router /subscriptions/{id}/sync [post]
+func (h *Handler) syncSubscription(w http.ResponseWriter, r *http.Request) {
+	id, err := subscriptionID(r)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	item, err := h.subs.Sync(r.Context(), id)
+	if err != nil {
+		handleSubscriptionError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+func subscriptionID(r *http.Request) (int64, error) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		return 0, errors.New("invalid subscription ID")
+	}
+	return id, nil
+}
+
+func handleSubscriptionError(w http.ResponseWriter, err error) {
+	if errors.Is(err, sql.ErrNoRows) {
+		fail(w, http.StatusNotFound, errors.New("subscription not found"))
+		return
+	}
+	fail(w, http.StatusBadGateway, err)
 }
 
 func decode(r *http.Request, dst any) error {

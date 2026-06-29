@@ -38,6 +38,7 @@ type Subscription struct {
 	SaveDirName string    `json:"saveDirName"`
 	SavePath    string    `json:"savePath"`
 	RuleName    string    `json:"ruleName"`
+	Season      int       `json:"season"`
 	Enabled     bool      `json:"enabled"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
@@ -47,6 +48,15 @@ type CreateSubscriptionRequest struct {
 	RSSURL        string `json:"rssUrl"`
 	Regex         string `json:"regex,omitempty"`
 	CustomDirName string `json:"customDirName,omitempty"`
+	Season        int    `json:"season"`
+}
+
+type UpdateSubscriptionRequest struct {
+	RSSURL      string `json:"rssUrl"`
+	Regex       string `json:"regex,omitempty"`
+	SaveDirName string `json:"saveDirName"`
+	Season      int    `json:"season"`
+	Enabled     bool   `json:"enabled"`
 }
 
 type QBTestResponse struct {

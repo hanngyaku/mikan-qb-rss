@@ -1,0 +1,374 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "description": "qBittorrent RSS 管理工具 API",
+        "title": "Mikan qBittorrent RSS API",
+        "contact": {},
+        "version": "0.1"
+    },
+    "paths": {
+        "/qb/test": {
+            "post": {
+                "tags": [
+                    "qbittorrent"
+                ],
+                "summary": "测试 qBittorrent 连接",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.QBTestResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/settings": {
+            "get": {
+                "tags": [
+                    "settings"
+                ],
+                "summary": "获取设置（不返回密码）",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.SettingsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "settings"
+                ],
+                "summary": "更新设置，空密码保留原密码",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateSettingsRequest"
+                            }
+                        }
+                    },
+                    "description": "设置",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.SettingsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions": {
+            "get": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "订阅列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/model.Subscription"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "添加订阅并同步 qBittorrent",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.CreateSubscriptionRequest"
+                            }
+                        }
+                    },
+                    "description": "订阅",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.Subscription"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions/{id}": {
+            "put": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "更新订阅并同步 qBittorrent",
+                "parameters": [
+                    {
+                        "description": "订阅 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateSubscriptionRequest"
+                            }
+                        }
+                    },
+                    "description": "订阅",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.Subscription"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "删除订阅及 qBittorrent RSS 配置",
+                "parameters": [
+                    {
+                        "description": "订阅 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/subscriptions/{id}/sync": {
+            "post": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "重新同步订阅到 qBittorrent",
+                "parameters": [
+                    {
+                        "description": "订阅 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.Subscription"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "servers": [
+        {
+            "url": "/api"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "model.CreateSubscriptionRequest": {
+                "type": "object",
+                "properties": {
+                    "customDirName": {
+                        "type": "string"
+                    },
+                    "regex": {
+                        "type": "string"
+                    },
+                    "rssUrl": {
+                        "type": "string"
+                    },
+                    "season": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "model.QBTestResponse": {
+                "type": "object",
+                "properties": {
+                    "connected": {
+                        "type": "boolean"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "webApiVersion": {
+                        "type": "string"
+                    }
+                }
+            },
+            "model.SettingsResponse": {
+                "type": "object",
+                "properties": {
+                    "defaultCategory": {
+                        "type": "string"
+                    },
+                    "downloadRoot": {
+                        "type": "string"
+                    },
+                    "passwordSet": {
+                        "type": "boolean"
+                    },
+                    "qbUrl": {
+                        "type": "string"
+                    },
+                    "qbUsername": {
+                        "type": "string"
+                    },
+                    "rssInterval": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "model.Subscription": {
+                "type": "object",
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "rawTitle": {
+                        "type": "string"
+                    },
+                    "regex": {
+                        "type": "string"
+                    },
+                    "rssUrl": {
+                        "type": "string"
+                    },
+                    "ruleName": {
+                        "type": "string"
+                    },
+                    "saveDirName": {
+                        "type": "string"
+                    },
+                    "savePath": {
+                        "type": "string"
+                    },
+                    "season": {
+                        "type": "integer"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "model.UpdateSettingsRequest": {
+                "type": "object",
+                "properties": {
+                    "defaultCategory": {
+                        "type": "string"
+                    },
+                    "downloadRoot": {
+                        "type": "string"
+                    },
+                    "qbPassword": {
+                        "type": "string"
+                    },
+                    "qbUrl": {
+                        "type": "string"
+                    },
+                    "qbUsername": {
+                        "type": "string"
+                    },
+                    "rssInterval": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "model.UpdateSubscriptionRequest": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "regex": {
+                        "type": "string"
+                    },
+                    "rssUrl": {
+                        "type": "string"
+                    },
+                    "saveDirName": {
+                        "type": "string"
+                    },
+                    "season": {
+                        "type": "integer"
+                    }
+                }
+            }
+        }
+    }
+}
