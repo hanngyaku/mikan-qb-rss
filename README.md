@@ -67,6 +67,12 @@ chmod +x docker_restart.sh
 
 脚本会直接拉取 `ghcr.io/hanngyaku/mikan-qb-rss:latest`。私有 GHCR Package 需要提前执行 `docker login ghcr.io`。
 
+Windows PowerShell：
+
+```powershell
+.\docker_restart.ps1
+```
+
 ## 当前功能
 
 添加订阅会拉取并解析 RSS、清理目录名、确保 qBittorrent 分类存在、创建 RSS feed 和下载规则，再写入 SQLite。订阅支持编辑、删除和重新同步。
