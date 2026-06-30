@@ -21,15 +21,24 @@ func Open(path string) (*sql.DB, error) {
 		database.Close()
 		return nil, fmt.Errorf("initialize database: %w", err)
 	}
-	var seasonColumn int
-	if err = database.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('subscriptions') WHERE name='season'`).Scan(&seasonColumn); err != nil {
-		database.Close()
-		return nil, fmt.Errorf("inspect database schema: %w", err)
-	}
-	if seasonColumn == 0 {
-		if _, err = database.Exec(`ALTER TABLE subscriptions ADD COLUMN season INTEGER NOT NULL DEFAULT 1`); err != nil {
+	for _, migration := range []struct{ table, column, definition string }{
+		{"subscriptions", "season", "INTEGER NOT NULL DEFAULT 1"},
+		{"subscriptions", "exclude_regex", "TEXT NOT NULL DEFAULT ''"},
+		{"settings", "default_exclude_regex", "TEXT NOT NULL DEFAULT ''"},
+		{"settings", "latest_exclude_regex", "TEXT NOT NULL DEFAULT ''"},
+	} {
+		var exists int
+		query := fmt.Sprintf(`SELECT COUNT(*) FROM pragma_table_info('%s') WHERE name=?`, migration.table)
+		if err = database.QueryRow(query, migration.column).Scan(&exists); err != nil {
 			database.Close()
-			return nil, fmt.Errorf("migrate database: %w", err)
+			return nil, fmt.Errorf("inspect database schema: %w", err)
+		}
+		if exists == 0 {
+			query = fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s %s`, migration.table, migration.column, migration.definition)
+			if _, err = database.Exec(query); err != nil {
+				database.Close()
+				return nil, fmt.Errorf("migrate database: %w", err)
+			}
 		}
 	}
 	return database, nil
@@ -44,6 +53,8 @@ CREATE TABLE IF NOT EXISTS settings (
 	download_root TEXT NOT NULL DEFAULT '/downloads/anime',
 	default_category TEXT NOT NULL DEFAULT 'MikanRSS',
 	rss_interval INTEGER NOT NULL DEFAULT 30
+	,default_exclude_regex TEXT NOT NULL DEFAULT ''
+	,latest_exclude_regex TEXT NOT NULL DEFAULT ''
 );
 INSERT OR IGNORE INTO settings (id) VALUES (1);
 CREATE TABLE IF NOT EXISTS subscriptions (
@@ -52,6 +63,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 	raw_title TEXT NOT NULL,
 	rss_url TEXT NOT NULL UNIQUE,
 	regex TEXT NOT NULL DEFAULT '',
+	exclude_regex TEXT NOT NULL DEFAULT '',
 	save_dir_name TEXT NOT NULL,
 	save_path TEXT NOT NULL,
 	rule_name TEXT NOT NULL,

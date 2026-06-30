@@ -8,6 +8,7 @@ const editing = ref(false)
 const form = reactive<UpdateSubscription>({
   rssUrl: props.item.rssUrl,
   regex: props.item.regex,
+  excludeRegex: props.item.excludeRegex,
   saveDirName: props.item.saveDirName,
   season: props.item.season,
   enabled: props.item.enabled,
@@ -47,6 +48,7 @@ async function remove() {
       <label>目录名称<input v-model.trim="form.saveDirName" required></label>
       <label>RSS 源<input v-model.trim="form.rssUrl" type="url" required></label>
       <label>正则表达式<input v-model="form.regex"></label>
+      <label>排除正则<input v-model="form.excludeRegex"></label>
       <label>Season<input v-model.number="form.season" type="number" min="1" required></label>
       <label class="checkbox"><input v-model="form.enabled" type="checkbox">启用</label>
       <div class="actions"><button type="submit">保存并同步</button><button type="button" class="secondary" @click="editing = false">取消</button></div>
@@ -56,6 +58,7 @@ async function remove() {
         <dt>目录名称</dt><dd>{{ item.saveDirName }}</dd>
         <dt>RSS 源</dt><dd><a :href="item.rssUrl" target="_blank">{{ item.rssUrl }}</a></dd>
         <dt>正则表达式</dt><dd>{{ item.regex || '无' }}</dd>
+        <dt>排除正则</dt><dd>{{ item.excludeRegex || '无' }}</dd>
         <dt>保存路径</dt><dd>{{ item.savePath }}</dd>
         <dt>Season</dt><dd>{{ item.season }}</dd>
         <dt>状态</dt><dd>{{ item.enabled ? '启用' : '停用' }}</dd>

@@ -257,6 +257,9 @@ const docTemplate = `{
                 "customDirName": {
                     "type": "string"
                 },
+                "excludeRegex": {
+                    "type": "string"
+                },
                 "regex": {
                     "type": "string"
                 },
@@ -299,7 +302,13 @@ const docTemplate = `{
                 "defaultCategory": {
                     "type": "string"
                 },
+                "defaultExcludeRegex": {
+                    "type": "string"
+                },
                 "downloadRoot": {
+                    "type": "string"
+                },
+                "latestExcludeRegex": {
                     "type": "string"
                 },
                 "passwordSet": {
@@ -324,6 +333,9 @@ const docTemplate = `{
                 },
                 "enabled": {
                     "type": "boolean"
+                },
+                "excludeRegex": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
@@ -363,6 +375,9 @@ const docTemplate = `{
                 "defaultCategory": {
                     "type": "string"
                 },
+                "defaultExcludeRegex": {
+                    "type": "string"
+                },
                 "downloadRoot": {
                     "type": "string"
                 },
@@ -385,6 +400,9 @@ const docTemplate = `{
             "properties": {
                 "enabled": {
                     "type": "boolean"
+                },
+                "excludeRegex": {
+                    "type": "string"
                 },
                 "regex": {
                     "type": "string"

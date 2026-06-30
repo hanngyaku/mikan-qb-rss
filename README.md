@@ -79,6 +79,8 @@ Windows PowerShell：
 
 添加订阅会拉取并解析 RSS、清理目录名、确保 qBittorrent 分类存在、创建 RSS feed 和下载规则，再写入 SQLite。订阅支持编辑、删除和重新同步。
 
+设置页可配置默认排除正则；系统会记录最近一次创建/编辑订阅使用的排除正则，并在下次新建时自动填入。排除 `720` 或集数范围可使用 `720|\d+-\d+`，该值写入 qBittorrent `mustNotContain`。
+
 每个订阅可设置 Season（默认 1），保存路径为 `名称/Season N`。后端每分钟检查已完成任务，从 `[12]` 形式的文件名提取集数，并通过 qBittorrent API 重命名为 `名称 S01 E12.mp4`；无法识别集数的文件不会修改。
 
 运行日志同时输出到控制台和 `app.log`；Docker 中保存在数据卷的 `/app/data/app.log`。前端“日志”页面可按行数读取最新日志。

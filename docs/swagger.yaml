@@ -4,6 +4,8 @@ definitions:
     properties:
       customDirName:
         type: string
+      excludeRegex:
+        type: string
       regex:
         type: string
       rssUrl:
@@ -31,7 +33,11 @@ definitions:
     properties:
       defaultCategory:
         type: string
+      defaultExcludeRegex:
+        type: string
       downloadRoot:
+        type: string
+      latestExcludeRegex:
         type: string
       passwordSet:
         type: boolean
@@ -48,6 +54,8 @@ definitions:
         type: string
       enabled:
         type: boolean
+      excludeRegex:
+        type: string
       id:
         type: integer
       name:
@@ -73,6 +81,8 @@ definitions:
     properties:
       defaultCategory:
         type: string
+      defaultExcludeRegex:
+        type: string
       downloadRoot:
         type: string
       qbPassword:
@@ -88,6 +98,8 @@ definitions:
     properties:
       enabled:
         type: boolean
+      excludeRegex:
+        type: string
       regex:
         type: string
       rssUrl:

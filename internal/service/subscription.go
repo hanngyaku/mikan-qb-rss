@@ -47,7 +47,7 @@ func (s *SubscriptionService) Create(ctx context.Context, req model.CreateSubscr
 	now := time.Now().UTC()
 	season := max(req.Season, 1)
 	item := model.Subscription{
-		Name: name, RawTitle: rawTitle, RSSURL: rssURL, Regex: req.Regex,
+		Name: name, RawTitle: rawTitle, RSSURL: rssURL, Regex: req.Regex, ExcludeRegex: req.ExcludeRegex,
 		SaveDirName: dirName, Season: season,
 		SavePath: pathutil.Join(pathutil.Join(settings.DownloadRoot, dirName), fmt.Sprintf("Season %d", season)),
 		RuleName: name, Enabled: true, CreatedAt: now, UpdatedAt: now,
@@ -56,19 +56,22 @@ func (s *SubscriptionService) Create(ctx context.Context, req model.CreateSubscr
 		return model.Subscription{}, err
 	}
 	result, err := s.db.ExecContext(ctx, `INSERT INTO subscriptions
-		(name, raw_title, rss_url, regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
-		item.Name, item.RawTitle, item.RSSURL, item.Regex, item.SaveDirName, item.SavePath, item.RuleName, item.Season, item.CreatedAt, item.UpdatedAt)
+		(name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+		item.Name, item.RawTitle, item.RSSURL, item.Regex, item.ExcludeRegex, item.SaveDirName, item.SavePath, item.RuleName, item.Season, item.CreatedAt, item.UpdatedAt)
 	if err != nil {
 		_ = s.removeQB(ctx, item)
 		return model.Subscription{}, fmt.Errorf("save subscription: %w", err)
 	}
 	item.ID, err = result.LastInsertId()
+	if err == nil {
+		err = config.SetLatestExcludeRegex(ctx, s.db, item.ExcludeRegex)
+	}
 	return item, err
 }
 
 func (s *SubscriptionService) List(ctx context.Context) ([]model.Subscription, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id, name, raw_title, rss_url, regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at FROM subscriptions ORDER BY id DESC`)
+	rows, err := s.db.QueryContext(ctx, `SELECT id, name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at FROM subscriptions ORDER BY id DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +79,7 @@ func (s *SubscriptionService) List(ctx context.Context) ([]model.Subscription, e
 	items := make([]model.Subscription, 0)
 	for rows.Next() {
 		var item model.Subscription
-		if err := rows.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.ExcludeRegex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -86,8 +89,8 @@ func (s *SubscriptionService) List(ctx context.Context) ([]model.Subscription, e
 
 func (s *SubscriptionService) Get(ctx context.Context, id int64) (model.Subscription, error) {
 	var item model.Subscription
-	row := s.db.QueryRowContext(ctx, `SELECT id, name, raw_title, rss_url, regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at FROM subscriptions WHERE id=?`, id)
-	err := row.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt)
+	row := s.db.QueryRowContext(ctx, `SELECT id, name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at FROM subscriptions WHERE id=?`, id)
+	err := row.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.ExcludeRegex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt)
 	return item, err
 }
 
@@ -105,6 +108,7 @@ func (s *SubscriptionService) Update(ctx context.Context, id int64, req model.Up
 		return model.Subscription{}, err
 	}
 	item.Regex = req.Regex
+	item.ExcludeRegex = req.ExcludeRegex
 	item.SaveDirName = pathutil.CleanDirName(req.SaveDirName)
 	item.Season = max(req.Season, 1)
 	item.SavePath = pathutil.Join(pathutil.Join(settings.DownloadRoot, item.SaveDirName), fmt.Sprintf("Season %d", item.Season))
@@ -113,8 +117,11 @@ func (s *SubscriptionService) Update(ctx context.Context, id int64, req model.Up
 	if err := s.syncQB(ctx, item); err != nil {
 		return model.Subscription{}, err
 	}
-	_, err = s.db.ExecContext(ctx, `UPDATE subscriptions SET rss_url=?, regex=?, save_dir_name=?, save_path=?, season=?, enabled=?, updated_at=? WHERE id=?`,
-		item.RSSURL, item.Regex, item.SaveDirName, item.SavePath, item.Season, item.Enabled, item.UpdatedAt, item.ID)
+	_, err = s.db.ExecContext(ctx, `UPDATE subscriptions SET rss_url=?, regex=?, exclude_regex=?, save_dir_name=?, save_path=?, season=?, enabled=?, updated_at=? WHERE id=?`,
+		item.RSSURL, item.Regex, item.ExcludeRegex, item.SaveDirName, item.SavePath, item.Season, item.Enabled, item.UpdatedAt, item.ID)
+	if err == nil {
+		err = config.SetLatestExcludeRegex(ctx, s.db, item.ExcludeRegex)
+	}
 	return item, err
 }
 
@@ -163,7 +170,8 @@ func (s *SubscriptionService) syncQB(ctx context.Context, item model.Subscriptio
 		}
 	}
 	rule := qbittorrent.Rule{
-		Enabled: item.Enabled, MustContain: item.Regex, UseRegex: item.Regex != "",
+		Enabled: item.Enabled, MustContain: item.Regex, MustNotContain: item.ExcludeRegex,
+		UseRegex:                  item.Regex != "" || item.ExcludeRegex != "",
 		PreviouslyMatchedEpisodes: []string{}, AffectedFeeds: []string{item.RSSURL},
 		AssignedCategory: settings.DefaultCategory, SavePath: item.SavePath,
 	}
@@ -187,6 +195,7 @@ func (s *SubscriptionService) syncQB(ctx context.Context, item model.Subscriptio
 func sameRule(a, b qbittorrent.Rule) bool {
 	return a.Enabled == b.Enabled &&
 		a.MustContain == b.MustContain &&
+		a.MustNotContain == b.MustNotContain &&
 		a.UseRegex == b.UseRegex &&
 		a.AssignedCategory == b.AssignedCategory &&
 		a.SavePath == b.SavePath &&

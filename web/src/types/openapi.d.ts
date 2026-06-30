@@ -311,6 +311,7 @@ export interface components {
     schemas: {
         "model.CreateSubscriptionRequest": {
             customDirName?: string;
+            excludeRegex?: string;
             regex?: string;
             rssUrl?: string;
             season?: number;
@@ -325,7 +326,9 @@ export interface components {
         };
         "model.SettingsResponse": {
             defaultCategory?: string;
+            defaultExcludeRegex?: string;
             downloadRoot?: string;
+            latestExcludeRegex?: string;
             passwordSet?: boolean;
             qbUrl?: string;
             qbUsername?: string;
@@ -334,6 +337,7 @@ export interface components {
         "model.Subscription": {
             createdAt?: string;
             enabled?: boolean;
+            excludeRegex?: string;
             id?: number;
             name?: string;
             rawTitle?: string;
@@ -347,6 +351,7 @@ export interface components {
         };
         "model.UpdateSettingsRequest": {
             defaultCategory?: string;
+            defaultExcludeRegex?: string;
             downloadRoot?: string;
             qbPassword?: string;
             qbUrl?: string;
@@ -355,6 +360,7 @@ export interface components {
         };
         "model.UpdateSubscriptionRequest": {
             enabled?: boolean;
+            excludeRegex?: string;
             regex?: string;
             rssUrl?: string;
             saveDirName?: string;

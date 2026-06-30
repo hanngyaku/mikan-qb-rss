@@ -5,6 +5,7 @@ import { api, type UpdateSettings } from '../api'
 const form = reactive<UpdateSettings>({
   qbUrl: '', qbUsername: '', qbPassword: '', downloadRoot: '/downloads/anime',
   defaultCategory: 'MikanRSS', rssInterval: 30,
+  defaultExcludeRegex: '',
 })
 const passwordSet = ref(false)
 const message = ref('')
@@ -19,6 +20,7 @@ onMounted(async () => {
       downloadRoot: data.downloadRoot,
       defaultCategory: data.defaultCategory,
       rssInterval: data.rssInterval,
+      defaultExcludeRegex: data.defaultExcludeRegex,
     })
     passwordSet.value = data.passwordSet ?? false
   } catch (error) { message.value = String(error) }
@@ -54,6 +56,7 @@ async function test() {
       <label>下载根目录<input v-model.trim="form.downloadRoot" required></label>
       <label>默认分类<input v-model.trim="form.defaultCategory" required></label>
       <label>RSS 刷新间隔（分钟）<input v-model.number="form.rssInterval" type="number" min="1" required></label>
+      <label>默认排除正则<input v-model="form.defaultExcludeRegex" placeholder="例如：720|\d+-\d+"></label>
       <div class="actions"><button type="submit">保存设置</button><button type="button" class="secondary" @click="test">测试连接</button></div>
     </form>
     <p v-if="message" class="message">{{ message }}</p>

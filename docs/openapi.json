@@ -267,6 +267,9 @@
                     "customDirName": {
                         "type": "string"
                     },
+                    "excludeRegex": {
+                        "type": "string"
+                    },
                     "regex": {
                         "type": "string"
                     },
@@ -309,7 +312,13 @@
                     "defaultCategory": {
                         "type": "string"
                     },
+                    "defaultExcludeRegex": {
+                        "type": "string"
+                    },
                     "downloadRoot": {
+                        "type": "string"
+                    },
+                    "latestExcludeRegex": {
                         "type": "string"
                     },
                     "passwordSet": {
@@ -334,6 +343,9 @@
                     },
                     "enabled": {
                         "type": "boolean"
+                    },
+                    "excludeRegex": {
+                        "type": "string"
                     },
                     "id": {
                         "type": "integer"
@@ -373,6 +385,9 @@
                     "defaultCategory": {
                         "type": "string"
                     },
+                    "defaultExcludeRegex": {
+                        "type": "string"
+                    },
                     "downloadRoot": {
                         "type": "string"
                     },
@@ -395,6 +410,9 @@
                 "properties": {
                     "enabled": {
                         "type": "boolean"
+                    },
+                    "excludeRegex": {
+                        "type": "string"
                     },
                     "regex": {
                         "type": "string"
