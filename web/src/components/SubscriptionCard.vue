@@ -5,6 +5,7 @@ import { api, type Subscription, type UpdateSubscription } from '../api'
 const props = defineProps<{ item: Subscription }>()
 const emit = defineEmits<{ changed: []; deleted: []; message: [text: string] }>()
 const editing = ref(false)
+const showDelete = ref(false)
 const form = reactive<UpdateSubscription>({
   rssUrl: props.item.rssUrl,
   regex: props.item.regex,
@@ -33,9 +34,10 @@ async function sync() {
 }
 
 async function remove() {
-  if (!props.item.id || !confirm(`确定删除“${props.item.name}”？`)) return
+  if (!props.item.id) return
   try {
     await api.deleteSubscription(props.item.id)
+    showDelete.value = false
     emit('deleted')
   } catch (error) { emit('message', String(error)) }
 }
@@ -44,7 +46,6 @@ async function remove() {
 <template>
   <details class="card">
     <summary>
-      <img v-if="item.posterUrl" :src="item.posterUrl" :alt="item.name">
       <span class="subscription-name">{{ item.name }}</span>
     </summary>
     <form v-if="editing" @submit.prevent="save">
@@ -74,8 +75,18 @@ async function remove() {
       <div class="actions">
         <button @click="editing = true">编辑</button>
         <button class="secondary" @click="sync">同步</button>
-        <button class="danger" @click="remove">删除</button>
+        <button class="danger" @click="showDelete = true">删除</button>
       </div>
     </template>
   </details>
+  <div v-if="showDelete" class="modal-backdrop" @click.self="showDelete = false">
+    <section class="modal-panel confirm-panel" role="alertdialog" aria-modal="true">
+      <h2>删除订阅</h2>
+      <p>确定删除“{{ item.name }}”吗？对应的 qBittorrent RSS 源和规则也会被删除。</p>
+      <div class="actions">
+        <button class="secondary" @click="showDelete = false">取消</button>
+        <button class="danger" @click="remove">确认删除</button>
+      </div>
+    </section>
+  </div>
 </template>

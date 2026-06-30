@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api, type Subscription } from '../api'
+import SubscriptionEditorModal from '../components/SubscriptionEditorModal.vue'
 
 const days = [
   { value: '星期一', label: '一' }, { value: '星期二', label: '二' },
@@ -10,14 +11,21 @@ const days = [
 ]
 const items = ref<Subscription[]>([])
 const message = ref('')
+const editing = ref<Subscription>()
 const today = new Date().getDay()
 const todayValue = days[today === 0 ? 6 : today - 1].value
 const unknown = computed(() => items.value.filter(item => !days.some(day => day.value === item.broadcastDay)))
 
-onMounted(async () => {
+async function load() {
   try { items.value = await api.listSubscriptions() }
   catch (error) { message.value = String(error) }
+}
+
+onMounted(() => {
+  load()
+  window.addEventListener('subscriptions-changed', load)
 })
+onBeforeUnmount(() => window.removeEventListener('subscriptions-changed', load))
 
 function startDrag(event: DragEvent, item: Subscription) {
   if (item.id) event.dataTransfer?.setData('text/plain', String(item.id))
@@ -32,6 +40,12 @@ async function drop(event: DragEvent, day: string) {
     if (index >= 0) items.value[index] = updated
     message.value = `已保存到${day}`
   } catch (error) { message.value = String(error) }
+}
+
+function saved(item: Subscription) {
+  const index = items.value.findIndex(value => value.id === item.id)
+  if (index >= 0) items.value[index] = item
+  editing.value = undefined
 }
 </script>
 
@@ -55,6 +69,7 @@ async function drop(event: DragEvent, day: string) {
           class="broadcast-card"
           draggable="true"
           @dragstart="startDrag($event, item)"
+          @click="editing = item"
         >
           <img v-if="item.posterUrl" :src="item.posterUrl" :alt="item.name">
           <div class="broadcast-card-name">{{ item.name }}</div>
@@ -64,11 +79,12 @@ async function drop(event: DragEvent, day: string) {
     <section v-if="unknown.length" class="unknown-broadcast" @dragover.prevent>
       <h2>未知 <small>拖拽到上方设置放送日</small></h2>
       <div class="unknown-list">
-        <article v-for="item in unknown" :key="item.id" class="broadcast-card" draggable="true" @dragstart="startDrag($event, item)">
+        <article v-for="item in unknown" :key="item.id" class="broadcast-card" draggable="true" @dragstart="startDrag($event, item)" @click="editing = item">
           <img v-if="item.posterUrl" :src="item.posterUrl" :alt="item.name">
           <div class="broadcast-card-name">{{ item.name }}</div>
         </article>
       </div>
     </section>
+    <SubscriptionEditorModal v-if="editing" :item="editing" @close="editing = undefined" @saved="saved" />
   </section>
 </template>
