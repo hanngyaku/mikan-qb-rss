@@ -7,6 +7,7 @@ export type CreateSubscription = components['schemas']['model.CreateSubscription
 export type UpdateSubscription = components['schemas']['model.UpdateSubscriptionRequest']
 export type QBTest = components['schemas']['model.QBTestResponse']
 export type LogResponse = components['schemas']['model.LogResponse']
+export type UpdateBroadcastDay = components['schemas']['model.UpdateBroadcastDayRequest']
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
@@ -28,4 +29,5 @@ export const api = {
   deleteSubscription: (id: number) => request<void>(`/subscriptions/${id}`, { method: 'DELETE' }),
   syncSubscription: (id: number) => request<Subscription>(`/subscriptions/${id}/sync`, { method: 'POST' }),
   getLogs: (lines: number) => request<LogResponse>(`/logs?lines=${lines}`),
+  updateBroadcastDay: (id: number, day: string) => request<Subscription>(`/subscriptions/${id}/broadcast-day`, { method: 'PUT', body: JSON.stringify({ day } satisfies UpdateBroadcastDay) }),
 }

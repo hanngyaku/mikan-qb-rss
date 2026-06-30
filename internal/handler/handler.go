@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -21,10 +22,11 @@ type Handler struct {
 	db      *sql.DB
 	subs    *service.SubscriptionService
 	logPath string
+	dataDir string
 }
 
-func New(db *sql.DB, logPath string) *Handler {
-	return &Handler{db: db, subs: service.NewSubscriptionService(db), logPath: logPath}
+func New(db *sql.DB, logPath, dataDir string) *Handler {
+	return &Handler{db: db, subs: service.NewSubscriptionService(db, dataDir), logPath: logPath, dataDir: dataDir}
 }
 
 func (h *Handler) Register(mux *http.ServeMux) {
@@ -39,7 +41,46 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/subscriptions/{id}", h.updateSubscription)
 	mux.HandleFunc("DELETE /api/subscriptions/{id}", h.deleteSubscription)
 	mux.HandleFunc("POST /api/subscriptions/{id}/sync", h.syncSubscription)
+	mux.HandleFunc("PUT /api/subscriptions/{id}/broadcast-day", h.updateBroadcastDay)
 	mux.HandleFunc("GET /api/logs", h.getLogs)
+	mux.HandleFunc("GET /api/posters/{id}", h.getPoster)
+}
+
+// updateBroadcastDay godoc
+// @Summary 设置订阅放送星期
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param id path int true "订阅 ID"
+// @Param body body model.UpdateBroadcastDayRequest true "放送星期"
+// @Success 200 {object} model.Subscription
+// @Router /subscriptions/{id}/broadcast-day [put]
+func (h *Handler) updateBroadcastDay(w http.ResponseWriter, r *http.Request) {
+	id, err := subscriptionID(r)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	var req model.UpdateBroadcastDayRequest
+	if err := decode(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	item, err := h.subs.SetBroadcastDay(r.Context(), id, req.Day)
+	if err != nil {
+		handleSubscriptionError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+func (h *Handler) getPoster(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+	http.ServeFile(w, r, filepath.Join(h.dataDir, "posters", strconv.Itoa(id)+".webp"))
 }
 
 // getSettings godoc

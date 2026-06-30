@@ -30,13 +30,14 @@ func main() {
 	defer logFile.Close()
 	log.SetOutput(io.MultiWriter(os.Stdout, logFile))
 
-	database, err := db.Open(env("DB_PATH", "data/app.db"))
+	dbPath := env("DB_PATH", "data/app.db")
+	database, err := db.Open(dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer database.Close()
 
-	h := handler.New(database, logPath)
+	h := handler.New(database, logPath, filepath.Dir(dbPath))
 	service.NewRenamer(database).Start(context.Background())
 	mux := http.NewServeMux()
 	h.Register(mux)

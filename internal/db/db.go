@@ -26,6 +26,13 @@ func Open(path string) (*sql.DB, error) {
 		{"subscriptions", "exclude_regex", "TEXT NOT NULL DEFAULT ''"},
 		{"settings", "default_exclude_regex", "TEXT NOT NULL DEFAULT ''"},
 		{"settings", "latest_exclude_regex", "TEXT NOT NULL DEFAULT ''"},
+		{"subscriptions", "bangumi_id", "INTEGER NOT NULL DEFAULT 0"},
+		{"subscriptions", "broadcast_day", "TEXT NOT NULL DEFAULT ''"},
+		{"subscriptions", "broadcast_start", "TEXT NOT NULL DEFAULT ''"},
+		{"subscriptions", "official_url", "TEXT NOT NULL DEFAULT ''"},
+		{"subscriptions", "bangumi_url", "TEXT NOT NULL DEFAULT ''"},
+		{"subscriptions", "description", "TEXT NOT NULL DEFAULT ''"},
+		{"subscriptions", "broadcast_day_override", "TEXT NOT NULL DEFAULT ''"},
 	} {
 		var exists int
 		query := fmt.Sprintf(`SELECT COUNT(*) FROM pragma_table_info('%s') WHERE name=?`, migration.table)
@@ -67,6 +74,13 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 	save_dir_name TEXT NOT NULL,
 	save_path TEXT NOT NULL,
 	rule_name TEXT NOT NULL,
+	bangumi_id INTEGER NOT NULL DEFAULT 0,
+	broadcast_day TEXT NOT NULL DEFAULT '',
+	broadcast_start TEXT NOT NULL DEFAULT '',
+	official_url TEXT NOT NULL DEFAULT '',
+	bangumi_url TEXT NOT NULL DEFAULT '',
+	description TEXT NOT NULL DEFAULT '',
+	broadcast_day_override TEXT NOT NULL DEFAULT '',
 	season INTEGER NOT NULL DEFAULT 1,
 	enabled INTEGER NOT NULL DEFAULT 1,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

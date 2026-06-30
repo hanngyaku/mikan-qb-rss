@@ -222,6 +222,48 @@
                 }
             }
         },
+        "/subscriptions/{id}/broadcast-day": {
+            "put": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "设置订阅放送星期",
+                "parameters": [
+                    {
+                        "description": "订阅 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.UpdateBroadcastDayRequest"
+                            }
+                        }
+                    },
+                    "description": "放送星期",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.Subscription"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/subscriptions/{id}/sync": {
             "post": {
                 "tags": [
@@ -338,7 +380,25 @@
             "model.Subscription": {
                 "type": "object",
                 "properties": {
+                    "bangumiId": {
+                        "type": "integer"
+                    },
+                    "bangumiUrl": {
+                        "type": "string"
+                    },
+                    "broadcastDay": {
+                        "type": "string"
+                    },
+                    "broadcastDayOverride": {
+                        "type": "string"
+                    },
+                    "broadcastStart": {
+                        "type": "string"
+                    },
                     "createdAt": {
+                        "type": "string"
+                    },
+                    "description": {
                         "type": "string"
                     },
                     "enabled": {
@@ -351,6 +411,12 @@
                         "type": "integer"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "officialUrl": {
+                        "type": "string"
+                    },
+                    "posterUrl": {
                         "type": "string"
                     },
                     "rawTitle": {
@@ -375,6 +441,14 @@
                         "type": "integer"
                     },
                     "updatedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "model.UpdateBroadcastDayRequest": {
+                "type": "object",
+                "properties": {
+                    "day": {
                         "type": "string"
                     }
                 }

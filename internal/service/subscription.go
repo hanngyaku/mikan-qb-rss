@@ -18,12 +18,13 @@ import (
 )
 
 type SubscriptionService struct {
-	db   *sql.DB
-	http *http.Client
+	db      *sql.DB
+	http    *http.Client
+	dataDir string
 }
 
-func NewSubscriptionService(db *sql.DB) *SubscriptionService {
-	return &SubscriptionService{db: db, http: &http.Client{Timeout: 15 * time.Second}}
+func NewSubscriptionService(db *sql.DB, dataDir string) *SubscriptionService {
+	return &SubscriptionService{db: db, http: &http.Client{Timeout: 15 * time.Second}, dataDir: dataDir}
 }
 
 func (s *SubscriptionService) Create(ctx context.Context, req model.CreateSubscriptionRequest) (model.Subscription, error) {
@@ -46,19 +47,30 @@ func (s *SubscriptionService) Create(ctx context.Context, req model.CreateSubscr
 	}
 	now := time.Now().UTC()
 	season := max(req.Season, 1)
+	bangumiID := mikanBangumiID(rssURL)
+	var metadata mikanMetadata
+	if bangumiID > 0 {
+		metadata, err = s.fetchMikanMetadata(ctx, bangumiID)
+		if err != nil {
+			return model.Subscription{}, err
+		}
+	}
 	item := model.Subscription{
 		Name: name, RawTitle: rawTitle, RSSURL: rssURL, Regex: req.Regex, ExcludeRegex: req.ExcludeRegex,
 		SaveDirName: dirName, Season: season,
 		SavePath: pathutil.Join(pathutil.Join(settings.DownloadRoot, dirName), fmt.Sprintf("Season %d", season)),
-		RuleName: name, Enabled: true, CreatedAt: now, UpdatedAt: now,
+		RuleName: name, BangumiID: bangumiID, Enabled: true, CreatedAt: now, UpdatedAt: now,
 	}
+	applyMikanMetadata(&item, metadata)
+	s.decorate(&item)
 	if err := s.syncQB(ctx, item); err != nil {
 		return model.Subscription{}, err
 	}
 	result, err := s.db.ExecContext(ctx, `INSERT INTO subscriptions
-		(name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
-		item.Name, item.RawTitle, item.RSSURL, item.Regex, item.ExcludeRegex, item.SaveDirName, item.SavePath, item.RuleName, item.Season, item.CreatedAt, item.UpdatedAt)
+		(name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, bangumi_id, broadcast_day, broadcast_day_override, broadcast_start, official_url, bangumi_url, description, season, enabled, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+		item.Name, item.RawTitle, item.RSSURL, item.Regex, item.ExcludeRegex, item.SaveDirName, item.SavePath, item.RuleName, item.BangumiID,
+		item.MetadataBroadcastDay, item.BroadcastDayOverride, item.BroadcastStart, item.OfficialURL, item.BangumiURL, item.Description, item.Season, item.CreatedAt, item.UpdatedAt)
 	if err != nil {
 		_ = s.removeQB(ctx, item)
 		return model.Subscription{}, fmt.Errorf("save subscription: %w", err)
@@ -71,7 +83,7 @@ func (s *SubscriptionService) Create(ctx context.Context, req model.CreateSubscr
 }
 
 func (s *SubscriptionService) List(ctx context.Context) ([]model.Subscription, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id, name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at FROM subscriptions ORDER BY id DESC`)
+	rows, err := s.db.QueryContext(ctx, `SELECT id, name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, bangumi_id, broadcast_day, broadcast_day_override, broadcast_start, official_url, bangumi_url, description, season, enabled, created_at, updated_at FROM subscriptions ORDER BY id DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -79,9 +91,12 @@ func (s *SubscriptionService) List(ctx context.Context) ([]model.Subscription, e
 	items := make([]model.Subscription, 0)
 	for rows.Next() {
 		var item model.Subscription
-		if err := rows.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.ExcludeRegex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.ExcludeRegex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.BangumiID,
+			&item.MetadataBroadcastDay, &item.BroadcastDayOverride, &item.BroadcastStart, &item.OfficialURL, &item.BangumiURL, &item.Description, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return nil, err
 		}
+		s.decorate(&item)
+		effectiveBroadcastDay(&item)
 		items = append(items, item)
 	}
 	return items, rows.Err()
@@ -89,8 +104,11 @@ func (s *SubscriptionService) List(ctx context.Context) ([]model.Subscription, e
 
 func (s *SubscriptionService) Get(ctx context.Context, id int64) (model.Subscription, error) {
 	var item model.Subscription
-	row := s.db.QueryRowContext(ctx, `SELECT id, name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, season, enabled, created_at, updated_at FROM subscriptions WHERE id=?`, id)
-	err := row.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.ExcludeRegex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt)
+	row := s.db.QueryRowContext(ctx, `SELECT id, name, raw_title, rss_url, regex, exclude_regex, save_dir_name, save_path, rule_name, bangumi_id, broadcast_day, broadcast_day_override, broadcast_start, official_url, bangumi_url, description, season, enabled, created_at, updated_at FROM subscriptions WHERE id=?`, id)
+	err := row.Scan(&item.ID, &item.Name, &item.RawTitle, &item.RSSURL, &item.Regex, &item.ExcludeRegex, &item.SaveDirName, &item.SavePath, &item.RuleName, &item.BangumiID,
+		&item.MetadataBroadcastDay, &item.BroadcastDayOverride, &item.BroadcastStart, &item.OfficialURL, &item.BangumiURL, &item.Description, &item.Season, &item.Enabled, &item.CreatedAt, &item.UpdatedAt)
+	s.decorate(&item)
+	effectiveBroadcastDay(&item)
 	return item, err
 }
 
@@ -108,6 +126,16 @@ func (s *SubscriptionService) Update(ctx context.Context, id int64, req model.Up
 		return model.Subscription{}, err
 	}
 	item.Regex = req.Regex
+	item.BangumiID = mikanBangumiID(item.RSSURL)
+	if item.BangumiID > 0 {
+		metadata, err := s.fetchMikanMetadata(ctx, item.BangumiID)
+		if err != nil {
+			return model.Subscription{}, err
+		}
+		applyMikanMetadata(&item, metadata)
+		effectiveBroadcastDay(&item)
+	}
+	s.decorate(&item)
 	item.ExcludeRegex = req.ExcludeRegex
 	item.SaveDirName = pathutil.CleanDirName(req.SaveDirName)
 	item.Season = max(req.Season, 1)
@@ -117,8 +145,9 @@ func (s *SubscriptionService) Update(ctx context.Context, id int64, req model.Up
 	if err := s.syncQB(ctx, item); err != nil {
 		return model.Subscription{}, err
 	}
-	_, err = s.db.ExecContext(ctx, `UPDATE subscriptions SET rss_url=?, regex=?, exclude_regex=?, save_dir_name=?, save_path=?, season=?, enabled=?, updated_at=? WHERE id=?`,
-		item.RSSURL, item.Regex, item.ExcludeRegex, item.SaveDirName, item.SavePath, item.Season, item.Enabled, item.UpdatedAt, item.ID)
+	_, err = s.db.ExecContext(ctx, `UPDATE subscriptions SET rss_url=?, regex=?, exclude_regex=?, save_dir_name=?, save_path=?, bangumi_id=?, broadcast_day=?, broadcast_start=?, official_url=?, bangumi_url=?, description=?, season=?, enabled=?, updated_at=? WHERE id=?`,
+		item.RSSURL, item.Regex, item.ExcludeRegex, item.SaveDirName, item.SavePath, item.BangumiID,
+		item.MetadataBroadcastDay, item.BroadcastStart, item.OfficialURL, item.BangumiURL, item.Description, item.Season, item.Enabled, item.UpdatedAt, item.ID)
 	if err == nil {
 		err = config.SetLatestExcludeRegex(ctx, s.db, item.ExcludeRegex)
 	}
@@ -130,8 +159,45 @@ func (s *SubscriptionService) Sync(ctx context.Context, id int64) (model.Subscri
 	if err != nil {
 		return model.Subscription{}, err
 	}
+	item.BangumiID = mikanBangumiID(item.RSSURL)
+	if item.BangumiID > 0 {
+		metadata, err := s.fetchMikanMetadata(ctx, item.BangumiID)
+		if err != nil {
+			return model.Subscription{}, err
+		}
+		applyMikanMetadata(&item, metadata)
+		effectiveBroadcastDay(&item)
+		if _, err := s.db.ExecContext(ctx, `UPDATE subscriptions SET bangumi_id=?, broadcast_day=?, broadcast_start=?, official_url=?, bangumi_url=?, description=? WHERE id=?`,
+			item.BangumiID, item.MetadataBroadcastDay, item.BroadcastStart, item.OfficialURL, item.BangumiURL, item.Description, item.ID); err != nil {
+			return model.Subscription{}, err
+		}
+		s.decorate(&item)
+	}
 	err = s.syncQB(ctx, item)
 	return item, err
+}
+
+func (s *SubscriptionService) SetBroadcastDay(ctx context.Context, id int64, day string) (model.Subscription, error) {
+	if day != "" {
+		valid := false
+		for _, value := range []string{"星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"} {
+			valid = valid || day == value
+		}
+		if !valid {
+			return model.Subscription{}, fmt.Errorf("invalid broadcast day")
+		}
+	}
+	if _, err := s.db.ExecContext(ctx, `UPDATE subscriptions SET broadcast_day_override=?, updated_at=? WHERE id=?`, day, time.Now().UTC(), id); err != nil {
+		return model.Subscription{}, err
+	}
+	return s.Get(ctx, id)
+}
+
+func effectiveBroadcastDay(item *model.Subscription) {
+	item.BroadcastDay = item.MetadataBroadcastDay
+	if item.BroadcastDayOverride != "" {
+		item.BroadcastDay = item.BroadcastDayOverride
+	}
 }
 
 func (s *SubscriptionService) Delete(ctx context.Context, id int64) error {

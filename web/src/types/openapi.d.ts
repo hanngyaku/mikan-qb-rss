@@ -266,6 +266,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/subscriptions/{id}/broadcast-day": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 设置订阅放送星期 */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description 订阅 ID */
+                    id: number;
+                };
+                cookie?: never;
+            };
+            /** @description 放送星期 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.UpdateBroadcastDayRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.Subscription"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/subscriptions/{id}/sync": {
         parameters: {
             query?: never;
@@ -335,11 +379,19 @@ export interface components {
             rssInterval?: number;
         };
         "model.Subscription": {
+            bangumiId?: number;
+            bangumiUrl?: string;
+            broadcastDay?: string;
+            broadcastDayOverride?: string;
+            broadcastStart?: string;
             createdAt?: string;
+            description?: string;
             enabled?: boolean;
             excludeRegex?: string;
             id?: number;
             name?: string;
+            officialUrl?: string;
+            posterUrl?: string;
             rawTitle?: string;
             regex?: string;
             rssUrl?: string;
@@ -348,6 +400,9 @@ export interface components {
             savePath?: string;
             season?: number;
             updatedAt?: string;
+        };
+        "model.UpdateBroadcastDayRequest": {
+            day?: string;
         };
         "model.UpdateSettingsRequest": {
             defaultCategory?: string;

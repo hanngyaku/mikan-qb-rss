@@ -43,7 +43,10 @@ async function remove() {
 
 <template>
   <details class="card">
-    <summary>{{ item.name }}</summary>
+    <summary>
+      <img v-if="item.posterUrl" :src="item.posterUrl" :alt="item.name">
+      <span class="subscription-name">{{ item.name }}</span>
+    </summary>
     <form v-if="editing" @submit.prevent="save">
       <label>目录名称<input v-model.trim="form.saveDirName" required></label>
       <label>RSS 源<input v-model.trim="form.rssUrl" type="url" required></label>
@@ -61,6 +64,11 @@ async function remove() {
         <dt>排除正则</dt><dd>{{ item.excludeRegex || '无' }}</dd>
         <dt>保存路径</dt><dd>{{ item.savePath }}</dd>
         <dt>Season</dt><dd>{{ item.season }}</dd>
+        <dt>放送日期</dt><dd>{{ item.broadcastDay || '未知' }}</dd>
+        <dt>放送开始</dt><dd>{{ item.broadcastStart || '未知' }}</dd>
+        <dt>官方网站</dt><dd><a v-if="item.officialUrl" :href="item.officialUrl" target="_blank">{{ item.officialUrl }}</a><span v-else>无</span></dd>
+        <dt>Bangumi</dt><dd><a v-if="item.bangumiUrl" :href="item.bangumiUrl" target="_blank">{{ item.bangumiUrl }}</a><span v-else>无</span></dd>
+        <dt>概况介绍</dt><dd class="description">{{ item.description || '暂无介绍' }}</dd>
         <dt>状态</dt><dd>{{ item.enabled ? '启用' : '停用' }}</dd>
       </dl>
       <div class="actions">

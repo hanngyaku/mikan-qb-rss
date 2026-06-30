@@ -50,7 +50,19 @@ definitions:
     type: object
   model.Subscription:
     properties:
+      bangumiId:
+        type: integer
+      bangumiUrl:
+        type: string
+      broadcastDay:
+        type: string
+      broadcastDayOverride:
+        type: string
+      broadcastStart:
+        type: string
       createdAt:
+        type: string
+      description:
         type: string
       enabled:
         type: boolean
@@ -59,6 +71,10 @@ definitions:
       id:
         type: integer
       name:
+        type: string
+      officialUrl:
+        type: string
+      posterUrl:
         type: string
       rawTitle:
         type: string
@@ -75,6 +91,11 @@ definitions:
       season:
         type: integer
       updatedAt:
+        type: string
+    type: object
+  model.UpdateBroadcastDayRequest:
+    properties:
+      day:
         type: string
     type: object
   model.UpdateSettingsRequest:
@@ -247,6 +268,32 @@ paths:
           schema:
             $ref: '#/definitions/model.Subscription'
       summary: 更新订阅并同步 qBittorrent
+      tags:
+      - subscriptions
+  /subscriptions/{id}/broadcast-day:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订阅 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 放送星期
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateBroadcastDayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Subscription'
+      summary: 设置订阅放送星期
       tags:
       - subscriptions
   /subscriptions/{id}/sync:

@@ -35,19 +35,28 @@ type UpdateSettingsRequest struct {
 }
 
 type Subscription struct {
-	ID           int64     `json:"id"`
-	Name         string    `json:"name"`
-	RawTitle     string    `json:"rawTitle"`
-	RSSURL       string    `json:"rssUrl"`
-	Regex        string    `json:"regex"`
-	ExcludeRegex string    `json:"excludeRegex"`
-	SaveDirName  string    `json:"saveDirName"`
-	SavePath     string    `json:"savePath"`
-	RuleName     string    `json:"ruleName"`
-	Season       int       `json:"season"`
-	Enabled      bool      `json:"enabled"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	ID                   int64     `json:"id"`
+	Name                 string    `json:"name"`
+	RawTitle             string    `json:"rawTitle"`
+	RSSURL               string    `json:"rssUrl"`
+	Regex                string    `json:"regex"`
+	ExcludeRegex         string    `json:"excludeRegex"`
+	SaveDirName          string    `json:"saveDirName"`
+	SavePath             string    `json:"savePath"`
+	RuleName             string    `json:"ruleName"`
+	BangumiID            int       `json:"bangumiId"`
+	PosterURL            string    `json:"posterUrl,omitempty"`
+	BroadcastDay         string    `json:"broadcastDay"`
+	BroadcastDayOverride string    `json:"broadcastDayOverride"`
+	MetadataBroadcastDay string    `json:"-"`
+	BroadcastStart       string    `json:"broadcastStart"`
+	OfficialURL          string    `json:"officialUrl"`
+	BangumiURL           string    `json:"bangumiUrl"`
+	Description          string    `json:"description"`
+	Season               int       `json:"season"`
+	Enabled              bool      `json:"enabled"`
+	CreatedAt            time.Time `json:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt"`
 }
 
 type CreateSubscriptionRequest struct {
@@ -75,4 +84,8 @@ type QBTestResponse struct {
 
 type LogResponse struct {
 	Lines []string `json:"lines"`
+}
+
+type UpdateBroadcastDayRequest struct {
+	Day string `json:"day"`
 }

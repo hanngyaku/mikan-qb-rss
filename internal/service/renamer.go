@@ -61,7 +61,7 @@ func (r *Renamer) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	subscriptions, err := NewSubscriptionService(r.db).List(ctx)
+	subscriptions, err := NewSubscriptionService(r.db, "").List(ctx)
 	if err != nil {
 		return err
 	}
