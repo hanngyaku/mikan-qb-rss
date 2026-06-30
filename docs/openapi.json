@@ -37,6 +37,55 @@
                 }
             }
         },
+        "/qb/rss-settings": {
+            "get": {
+                "tags": [
+                    "qbittorrent"
+                ],
+                "summary": "获取 qBittorrent RSS 全局设置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.QBRSSSettings"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "qbittorrent"
+                ],
+                "summary": "更新 qBittorrent RSS 全局设置",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/model.QBRSSSettings"
+                            }
+                        }
+                    },
+                    "description": "RSS 设置",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/model.QBRSSSettings"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/qb/test": {
             "post": {
                 "tags": [
@@ -331,6 +380,20 @@
                         "items": {
                             "type": "string"
                         }
+                    }
+                }
+            },
+            "model.QBRSSSettings": {
+                "type": "object",
+                "properties": {
+                    "autoDownloadingEnabled": {
+                        "type": "boolean"
+                    },
+                    "processingEnabled": {
+                        "type": "boolean"
+                    },
+                    "refreshInterval": {
+                        "type": "integer"
                     }
                 }
             },

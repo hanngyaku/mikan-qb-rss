@@ -11,6 +11,7 @@ import (
 
 func TestRSSSetup(t *testing.T) {
 	var rule Rule
+	var preferences RSSPreferences
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/api/v2/auth/login":
@@ -19,6 +20,13 @@ func TestRSSSetup(t *testing.T) {
 			_, _ = io.WriteString(w, `{}`)
 		case "/api/v2/torrents/createCategory", "/api/v2/rss/addFeed":
 			_ = r.ParseForm()
+		case "/api/v2/app/preferences":
+			_, _ = io.WriteString(w, `{"rss_processing_enabled":true,"rss_auto_downloading_enabled":false,"rss_refresh_interval":30}`)
+		case "/api/v2/app/setPreferences":
+			_ = r.ParseForm()
+			if err := json.Unmarshal([]byte(r.FormValue("json")), &preferences); err != nil {
+				t.Fatal(err)
+			}
 		case "/api/v2/rss/setRule":
 			_ = r.ParseForm()
 			if err := json.Unmarshal([]byte(r.FormValue("ruleDef")), &rule); err != nil {
@@ -50,6 +58,14 @@ func TestRSSSetup(t *testing.T) {
 	}
 	if rule.AssignedCategory != want.AssignedCategory || rule.SavePath != want.SavePath || len(rule.AffectedFeeds) != 1 {
 		t.Fatalf("unexpected rule %#v", rule)
+	}
+	current, err := client.RSSPreferences(ctx)
+	if err != nil || !current.ProcessingEnabled || current.RefreshInterval != 30 {
+		t.Fatalf("unexpected preferences %#v err=%v", current, err)
+	}
+	current.AutoDownloadingEnabled = true
+	if err := client.SetRSSPreferences(ctx, current); err != nil || !preferences.AutoDownloadingEnabled {
+		t.Fatalf("preferences not updated: %#v err=%v", preferences, err)
 	}
 }
 

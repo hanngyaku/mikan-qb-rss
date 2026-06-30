@@ -9,6 +9,17 @@ const form = reactive<UpdateSettings>({
 })
 const passwordSet = ref(false)
 const message = ref('')
+const rssProcessingEnabled = ref(false)
+const rssAutoDownloadingEnabled = ref(false)
+const qbRSSLoaded = ref(false)
+
+async function loadQBRSS() {
+  const data = await api.getQBRSSSettings()
+  rssProcessingEnabled.value = data.processingEnabled ?? false
+  rssAutoDownloadingEnabled.value = data.autoDownloadingEnabled ?? false
+  form.rssInterval = data.refreshInterval ?? form.rssInterval
+  qbRSSLoaded.value = true
+}
 
 onMounted(async () => {
   try {
@@ -23,14 +34,23 @@ onMounted(async () => {
       defaultExcludeRegex: data.defaultExcludeRegex,
     })
     passwordSet.value = data.passwordSet ?? false
+    try { await loadQBRSS() } catch { /* qB 配置可在测试连接后读取 */ }
   } catch (error) { message.value = String(error) }
 })
 
 async function save() {
   try {
+    const refreshInterval = form.rssInterval
     const data = await api.updateSettings(form)
     passwordSet.value = data.passwordSet ?? false
     form.qbPassword = ''
+    if (!qbRSSLoaded.value) await loadQBRSS()
+    form.rssInterval = refreshInterval
+    await api.updateQBRSSSettings({
+      processingEnabled: rssProcessingEnabled.value,
+      autoDownloadingEnabled: rssAutoDownloadingEnabled.value,
+      refreshInterval,
+    })
     message.value = '设置已保存'
   } catch (error) { message.value = String(error) }
 }
@@ -41,6 +61,7 @@ async function test() {
     passwordSet.value = settings.passwordSet ?? false
     form.qbPassword = ''
     const data = await api.testQB()
+    await loadQBRSS()
     message.value = `连接成功：qBittorrent ${data.version} / Web API ${data.webApiVersion}`
   } catch (error) { message.value = String(error) }
 }
@@ -56,6 +77,12 @@ async function test() {
       <label>下载根目录<input v-model.trim="form.downloadRoot" required></label>
       <label>默认分类<input v-model.trim="form.defaultCategory" required></label>
       <label>RSS 刷新间隔（分钟）<input v-model.number="form.rssInterval" type="number" min="1" required></label>
+      <fieldset class="rss-settings">
+        <legend>qBittorrent RSS 状态</legend>
+        <label class="checkbox"><input v-model="rssProcessingEnabled" type="checkbox" :disabled="!qbRSSLoaded">获取 RSS 订阅</label>
+        <label class="checkbox"><input v-model="rssAutoDownloadingEnabled" type="checkbox" :disabled="!qbRSSLoaded">RSS Torrent 自动下载</label>
+        <small v-if="!qbRSSLoaded">保存连接信息并点击“测试连接”后读取状态</small>
+      </fieldset>
       <label>默认排除正则<input v-model="form.defaultExcludeRegex" placeholder="例如：720|\d+-\d+"></label>
       <div class="actions"><button type="submit">保存设置</button><button type="button" class="secondary" @click="test">测试连接</button></div>
     </form>

@@ -42,6 +42,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/qb/rss-settings": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "qbittorrent"
+                ],
+                "summary": "获取 qBittorrent RSS 全局设置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.QBRSSSettings"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "qbittorrent"
+                ],
+                "summary": "更新 qBittorrent RSS 全局设置",
+                "parameters": [
+                    {
+                        "description": "RSS 设置",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.QBRSSSettings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.QBRSSSettings"
+                        }
+                    }
+                }
+            }
+        },
         "/qb/test": {
             "post": {
                 "produces": [
@@ -319,6 +369,20 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "model.QBRSSSettings": {
+            "type": "object",
+            "properties": {
+                "autoDownloadingEnabled": {
+                    "type": "boolean"
+                },
+                "processingEnabled": {
+                    "type": "boolean"
+                },
+                "refreshInterval": {
+                    "type": "integer"
                 }
             }
         },

@@ -38,6 +38,12 @@ type TorrentFile struct {
 	Name string `json:"name"`
 }
 
+type RSSPreferences struct {
+	ProcessingEnabled      bool `json:"rss_processing_enabled"`
+	AutoDownloadingEnabled bool `json:"rss_auto_downloading_enabled"`
+	RefreshInterval        int  `json:"rss_refresh_interval"`
+}
+
 type Client struct {
 	baseURL  string
 	username string
@@ -75,6 +81,24 @@ func (c *Client) Version(ctx context.Context) (string, error) {
 
 func (c *Client) WebAPIVersion(ctx context.Context) (string, error) {
 	return c.request(ctx, http.MethodGet, "/api/v2/app/webapiVersion", nil, "")
+}
+
+func (c *Client) RSSPreferences(ctx context.Context) (RSSPreferences, error) {
+	body, err := c.request(ctx, http.MethodGet, "/api/v2/app/preferences", nil, "")
+	if err != nil {
+		return RSSPreferences{}, err
+	}
+	var preferences RSSPreferences
+	err = json.Unmarshal([]byte(body), &preferences)
+	return preferences, err
+}
+
+func (c *Client) SetRSSPreferences(ctx context.Context, preferences RSSPreferences) error {
+	data, err := json.Marshal(preferences)
+	if err != nil {
+		return err
+	}
+	return c.postForm(ctx, "/api/v2/app/setPreferences", url.Values{"json": {string(data)}})
 }
 
 func (c *Client) Test(ctx context.Context) (string, string, error) {

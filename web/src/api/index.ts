@@ -8,6 +8,7 @@ export type UpdateSubscription = components['schemas']['model.UpdateSubscription
 export type QBTest = components['schemas']['model.QBTestResponse']
 export type LogResponse = components['schemas']['model.LogResponse']
 export type UpdateBroadcastDay = components['schemas']['model.UpdateBroadcastDayRequest']
+export type QBRSSSettings = components['schemas']['model.QBRSSSettings']
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
@@ -30,4 +31,6 @@ export const api = {
   syncSubscription: (id: number) => request<Subscription>(`/subscriptions/${id}/sync`, { method: 'POST' }),
   getLogs: (lines: number) => request<LogResponse>(`/logs?lines=${lines}`),
   updateBroadcastDay: (id: number, day: string) => request<Subscription>(`/subscriptions/${id}/broadcast-day`, { method: 'PUT', body: JSON.stringify({ day } satisfies UpdateBroadcastDay) }),
+  getQBRSSSettings: () => request<QBRSSSettings>('/qb/rss-settings'),
+  updateQBRSSSettings: (body: QBRSSSettings) => request<QBRSSSettings>('/qb/rss-settings', { method: 'PUT', body: JSON.stringify(body) }),
 }

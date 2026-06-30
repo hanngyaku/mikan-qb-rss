@@ -43,6 +43,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/qb/rss-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取 qBittorrent RSS 全局设置 */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.QBRSSSettings"];
+                    };
+                };
+            };
+        };
+        /** 更新 qBittorrent RSS 全局设置 */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description RSS 设置 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["model.QBRSSSettings"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["model.QBRSSSettings"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/qb/test": {
         parameters: {
             query?: never;
@@ -362,6 +423,11 @@ export interface components {
         };
         "model.LogResponse": {
             lines?: string[];
+        };
+        "model.QBRSSSettings": {
+            autoDownloadingEnabled?: boolean;
+            processingEnabled?: boolean;
+            refreshInterval?: number;
         };
         "model.QBTestResponse": {
             connected?: boolean;

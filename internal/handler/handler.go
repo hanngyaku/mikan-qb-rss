@@ -36,6 +36,8 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/settings", h.getSettings)
 	mux.HandleFunc("PUT /api/settings", h.putSettings)
 	mux.HandleFunc("POST /api/qb/test", h.testQB)
+	mux.HandleFunc("GET /api/qb/rss-settings", h.getQBRSSSettings)
+	mux.HandleFunc("PUT /api/qb/rss-settings", h.putQBRSSSettings)
 	mux.HandleFunc("GET /api/subscriptions", h.listSubscriptions)
 	mux.HandleFunc("POST /api/subscriptions", h.createSubscription)
 	mux.HandleFunc("PUT /api/subscriptions/{id}", h.updateSubscription)
@@ -44,6 +46,73 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/subscriptions/{id}/broadcast-day", h.updateBroadcastDay)
 	mux.HandleFunc("GET /api/logs", h.getLogs)
 	mux.HandleFunc("GET /api/posters/{id}", h.getPoster)
+}
+
+// getQBRSSSettings godoc
+// @Summary 获取 qBittorrent RSS 全局设置
+// @Tags qbittorrent
+// @Produce json
+// @Success 200 {object} model.QBRSSSettings
+// @Router /qb/rss-settings [get]
+func (h *Handler) getQBRSSSettings(w http.ResponseWriter, r *http.Request) {
+	client, err := h.qbClient(r)
+	if err != nil {
+		fail(w, http.StatusBadGateway, err)
+		return
+	}
+	preferences, err := client.RSSPreferences(r.Context())
+	if err != nil {
+		fail(w, http.StatusBadGateway, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, model.QBRSSSettings{
+		ProcessingEnabled:      preferences.ProcessingEnabled,
+		AutoDownloadingEnabled: preferences.AutoDownloadingEnabled,
+		RefreshInterval:        preferences.RefreshInterval,
+	})
+}
+
+// putQBRSSSettings godoc
+// @Summary 更新 qBittorrent RSS 全局设置
+// @Tags qbittorrent
+// @Accept json
+// @Produce json
+// @Param body body model.QBRSSSettings true "RSS 设置"
+// @Success 200 {object} model.QBRSSSettings
+// @Router /qb/rss-settings [put]
+func (h *Handler) putQBRSSSettings(w http.ResponseWriter, r *http.Request) {
+	var req model.QBRSSSettings
+	if err := decode(r, &req); err != nil || req.RefreshInterval < 1 {
+		fail(w, http.StatusBadRequest, errors.New("invalid qBittorrent RSS settings"))
+		return
+	}
+	client, err := h.qbClient(r)
+	if err != nil {
+		fail(w, http.StatusBadGateway, err)
+		return
+	}
+	err = client.SetRSSPreferences(r.Context(), qbittorrent.RSSPreferences{
+		ProcessingEnabled:      req.ProcessingEnabled,
+		AutoDownloadingEnabled: req.AutoDownloadingEnabled,
+		RefreshInterval:        req.RefreshInterval,
+	})
+	if err != nil {
+		fail(w, http.StatusBadGateway, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, req)
+}
+
+func (h *Handler) qbClient(r *http.Request) (*qbittorrent.Client, error) {
+	settings, err := config.Get(r.Context(), h.db)
+	if err != nil {
+		return nil, err
+	}
+	client, err := qbittorrent.New(settings.QBURL, settings.QBUsername, settings.QBPassword)
+	if err != nil {
+		return nil, err
+	}
+	return client, client.Login(r.Context())
 }
 
 // updateBroadcastDay godoc

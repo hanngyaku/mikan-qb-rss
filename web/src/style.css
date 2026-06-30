@@ -15,6 +15,9 @@ button { padding: .65rem 1rem; border: 0; border-radius: .35rem; color: white; b
 button.secondary { background: #4b5563; }
 button.danger { background: #b91c1c; }
 .checkbox { display: flex; align-items: center; }
+.rss-settings { display: grid; gap: .65rem; padding: .85rem; border: 1px solid #d1d5db; border-radius: .4rem; }
+.rss-settings legend { padding: 0 .35rem; font-weight: 600; }
+.rss-settings small { color: #6b7280; }
 summary { cursor: pointer; font-weight: 600; }
 .card summary { display: flex; align-items: center; gap: 1rem; min-height: 2rem; list-style: none; }
 .card summary::-webkit-details-marker { display: none; }

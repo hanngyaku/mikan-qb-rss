@@ -82,6 +82,12 @@ type QBTestResponse struct {
 	WebAPIVersion string `json:"webApiVersion,omitempty"`
 }
 
+type QBRSSSettings struct {
+	ProcessingEnabled      bool `json:"processingEnabled"`
+	AutoDownloadingEnabled bool `json:"autoDownloadingEnabled"`
+	RefreshInterval        int  `json:"refreshInterval"`
+}
+
 type LogResponse struct {
 	Lines []string `json:"lines"`
 }
