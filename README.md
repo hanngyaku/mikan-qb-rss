@@ -35,7 +35,7 @@ npm run generate:api
 docker compose up --build
 ```
 
-访问 `http://localhost:8080`。可复制 `.env.example` 为 `.env` 修改对外端口。
+访问 `http://localhost:18081`。可复制 `.env.example` 为 `.env` 修改对外端口。
 
 前端热更新调试：
 
@@ -65,13 +65,15 @@ chmod +x docker_restart.sh
 ./docker_restart.sh
 ```
 
-脚本会直接拉取 `ghcr.io/hanngyaku/mikan-qb-rss:latest`。私有 GHCR Package 需要提前执行 `docker login ghcr.io`。
+脚本完全独立，不依赖 Compose 或 `.env`。运行前可直接修改脚本顶部的 `HOST_PORT` 和 `DATA_DIR`；它会拉取 `ghcr.io/hanngyaku/mikan-qb-rss:latest` 并替换旧容器。
 
 Windows PowerShell：
 
 ```powershell
 .\docker_restart.ps1
 ```
+
+可在脚本顶部修改 `$HostPort` 和 `$DataDir`，同样不依赖 Compose 或 `.env`。
 
 ## 当前功能
 

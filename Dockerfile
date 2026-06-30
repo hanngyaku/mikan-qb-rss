@@ -13,7 +13,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o /server ./cmd/server
 
 FROM alpine:3.22
-RUN adduser -D app
+RUN adduser -D -u 1000 app
 WORKDIR /app
 COPY --from=go-build /server /app/server
 COPY --from=web-build /src/web/dist /app/web
