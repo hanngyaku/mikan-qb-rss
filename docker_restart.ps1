@@ -7,14 +7,19 @@ $HostPort = 18081
 $DataDir = Join-Path $PSScriptRoot "data"
 
 New-Item -ItemType Directory -Path $DataDir -Force | Out-Null
-$DataDir = (Resolve-Path $DataDir).Path
+$DataDir = "C:\Users\cgg\Downloads\docker_test"
 
 Write-Host "==> Pulling latest image"
 docker pull $ImageName
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "==> Replacing container"
-docker rm -f $ContainerName 2>$null | Out-Null
+$ExistingContainer = docker ps -aq --filter "name=^/${ContainerName}$"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+if ($ExistingContainer) {
+    docker rm -f $ContainerName | Out-Null
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
 
 docker run -d `
     --name $ContainerName `
